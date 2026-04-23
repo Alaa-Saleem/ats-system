@@ -1,0 +1,208 @@
+<!-- ═══ LOCATION SECTION – WordPress Custom HTML Widget ═══ -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+<style>
+    .wg-location {
+        padding: 120px 0;
+        background: #f3efe9;
+        font-family: 'Inter', sans-serif
+    }
+
+    .wg-location .wg-container {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 24px
+    }
+
+    .wg-location .wg-sec-header {
+        text-align: center;
+        max-width: 620px;
+        margin: 0 auto 72px
+    }
+
+    .wg-location .wg-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #c79d6a;
+        font-size: .78rem;
+        letter-spacing: .2em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        font-weight: 600
+    }
+
+    .wg-location .wg-eyebrow::before,
+    .wg-location .wg-eyebrow::after {
+        content: '';
+        width: 24px;
+        height: 1px;
+        background: #c79d6a;
+        opacity: .4
+    }
+
+    .wg-location .wg-sec-header h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        color: #343861;
+        margin-bottom: 16px;
+        letter-spacing: -.02em;
+        line-height: 1.2
+    }
+
+    .wg-location .wg-sec-header p {
+        color: #6b6b80;
+        font-size: 1.05rem;
+        line-height: 1.7
+    }
+
+    .wg-location-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        align-items: start
+    }
+
+    .wg-location-map {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(52, 56, 97, .07);
+        border: 1px solid #e8e2d9;
+        height: 440px
+    }
+
+    .wg-location-map iframe {
+        width: 100%;
+        height: 100%;
+        border: 0
+    }
+
+    .wg-nearby-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px
+    }
+
+    .wg-nearby-card {
+        background: #fff;
+        padding: 28px;
+        border-radius: 16px;
+        border: 1px solid #e8e2d9;
+        transition: .4s
+    }
+
+    .wg-nearby-card:hover {
+        box-shadow: 0 8px 32px rgba(52, 56, 97, .07);
+        border-color: #c79d6a
+    }
+
+    .wg-nearby-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(199, 157, 106, .08);
+        color: #c79d6a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px
+    }
+
+    .wg-nearby-icon svg {
+        width: 22px;
+        height: 22px
+    }
+
+    .wg-nearby-card h3 {
+        font-size: 1rem;
+        color: #343861;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-family: 'Inter', sans-serif
+    }
+
+    .wg-nearby-card p {
+        color: #6b6b80;
+        font-size: .85rem
+    }
+
+    @media(max-width:768px) {
+        .wg-location-grid {
+            grid-template-columns: 1fr
+        }
+
+        .wg-location .wg-sec-header h2 {
+            font-size: 2rem
+        }
+
+        .wg-location {
+            padding: 80px 0
+        }
+    }
+</style>
+
+<section class="wg-location" id="location">
+    <div class="wg-container">
+        <div class="wg-sec-header">
+            <div class="wg-eyebrow">Location</div>
+            <h2>Prime Location & Surroundings</h2>
+            <p>Strategically positioned for the perfect balance of tranquility and urban convenience.</p>
+        </div>
+        <div class="wg-location-grid">
+            <div class="wg-location-map">
+                <iframe title="Compound Location"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3624.674073835818!2d46.6753!3d24.7136!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjTCsDQyJzQ5LjAiTiA0NsKwNDAnMzEuMSJF!5e0!3m2!1sen!2ssa!4v1600000000000"
+                    allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+            <div class="wg-nearby-grid">
+                <div class="wg-nearby-card">
+                    <div class="wg-nearby-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                    </div>
+                    <h3>Shopping Centers</h3>
+                    <p>Panorama Mall, Kingdom Centre</p>
+                </div>
+                <div class="wg-nearby-card">
+                    <div class="wg-nearby-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                    </div>
+                    <h3>Schools & Universities</h3>
+                    <p>International schools nearby</p>
+                </div>
+                <div class="wg-nearby-card">
+                    <div class="wg-nearby-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg>
+                    </div>
+                    <h3>Hospitals</h3>
+                    <p>King Faisal Specialist Hospital</p>
+                </div>
+                <div class="wg-nearby-card">
+                    <div class="wg-nearby-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="10" r="3"></circle>
+                            <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"></path>
+                        </svg>
+                    </div>
+                    <h3>Parks & Recreation</h3>
+                    <p>King Abdullah Park, Wadi Hanifah</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

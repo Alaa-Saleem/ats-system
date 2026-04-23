@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Company Dashboard</title>
+</head>
+<body>
+    <h2>Welcome, {{ user.username }}!</h2>
+    <h3>Your Jobs</h3>
+    
+    {% if jobs %}
+        <table border="1">
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Application Deadline</th>
+            </tr>
+            {% for job in jobs %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.description }}</td>
+                    <td>{{ job.status }}</td>
+                    <td>{{ job.application_deadline }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>You haven't posted any jobs yet.</p>
+    {% endif %}
+</body>
+</html>

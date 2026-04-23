@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Job List</title>
+</head>
+<body>
+    <h2>List of Jobs</h2>
+    <table border="1">
+        <tr>
+            <th>Title</th>
+            <th>Location</th>
+            <th>Deadline</th>
+            <th>Actions</th>
+        </tr>
+        {% for job in jobs %}
+        <tr>
+            <td>{{ job.title }}</td>
+            <td>{{ job.location }}</td>
+            <td>{{ job.application_deadline }}</td>
+            <td>
+                <a href="{% url 'jobs:add' %}">Add New</a> |
+                <a href="#">Edit</a> |
+                <a href="#">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

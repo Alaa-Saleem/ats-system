@@ -1,0 +1,700 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "My Profile" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ══ Profile Page — uses CSS variables for dark/light compatibility ══ */
+.prof-layout        { display:grid; grid-template-columns:280px 1fr; gap:24px; align-items:start; }
+.prof-sidebar       { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:16px; padding:28px 20px; position:sticky; top:80px; box-shadow:var(--card-shadow); }
+.prof-avatar-wrap   { position:relative; width:110px; height:110px; margin:0 auto 16px; }
+.prof-avatar-img    { width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid var(--accent-gold); }
+.prof-avatar-default{ width:110px; height:110px; border-radius:50%; background:linear-gradient(135deg,var(--accent-gold),#d97706); display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:700; color:#fff; border:3px solid var(--accent-gold); }
+.prof-avatar-edit   { position:absolute; bottom:4px; right:4px; background:var(--accent-gold); color:#0d0f18; border:none; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; }
+.prof-name          { text-align:center; font-size:17px; font-weight:700; color:var(--text-main); margin-bottom:4px; }
+.prof-role          { text-align:center; font-size:12px; color:var(--accent-gold); text-transform:uppercase; letter-spacing:.8px; margin-bottom:20px; }
+
+/* Completion Ring */
+.prof-completion    { display:flex; flex-direction:column; align-items:center; margin-bottom:20px; }
+.prof-ring-wrap     { position:relative; width:80px; height:80px; }
+.prof-ring-svg      { transform:rotate(-90deg); }
+.prof-ring-track    { fill:none; stroke:var(--border-subtle); stroke-width:7; }
+.prof-ring-fill     { fill:none; stroke:var(--accent-gold); stroke-width:7; stroke-linecap:round; transition:stroke-dashoffset 1s ease; }
+.prof-ring-pct      { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--accent-gold); }
+.prof-comp-label    { font-size:12px; color:var(--text-muted); margin-top:6px; }
+
+/* Hints */
+.prof-hints         { background:var(--bg-surface-2); border-radius:10px; padding:12px; margin-bottom:20px; border:1px solid var(--border-subtle); }
+.prof-hint-item     { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-body); padding:3px 0; }
+.prof-hint-item i   { color:var(--accent-gold); font-size:10px; }
+
+/* Sidebar nav */
+.prof-nav           { display:flex; flex-direction:column; gap:4px; }
+.prof-nav-link      { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; font-size:13px; color:var(--text-muted); text-decoration:none; transition:.15s; cursor:pointer; border:none; background:none; width:100%; text-align:start; }
+.prof-nav-link:hover{ background:var(--bg-surface-2); color:var(--text-main); }
+.prof-nav-link.active{ background:var(--accent-gold-soft); color:var(--accent-gold); font-weight:600; border-inline-start:3px solid var(--accent-gold); }
+.prof-nav-link i    { width:16px; text-align:center; flex-shrink:0; }
+
+/* Shareable box */
+.prof-share-box     { background:var(--bg-surface-2); border:1px solid var(--border-subtle); border-radius:10px; padding:12px; margin-top:16px; }
+.prof-share-title   { font-size:11px; text-transform:uppercase; letter-spacing:.7px; color:var(--text-muted); margin-bottom:8px; }
+.prof-share-url     { display:flex; align-items:center; gap:6px; }
+.prof-share-input   { flex:1; background:var(--bg-main); border:1px solid var(--border-subtle); border-radius:6px; padding:5px 8px; font-size:11px; color:var(--text-body); outline:none; min-width:0; }
+.prof-copy-btn      { background:var(--accent-gold); color:#0d0f18; border:none; border-radius:6px; padding:5px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; transition:.2s; }
+.prof-copy-btn:hover{ filter:brightness(1.1); }
+
+/* Main area */
+.prof-main          {}
+.prof-tab           { display:none; }
+.prof-tab.active    { display:block; }
+.prof-card          { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:16px; padding:28px; margin-bottom:20px; box-shadow:var(--card-shadow); }
+.prof-card-title    { font-size:15px; font-weight:700; color:var(--accent-gold); display:flex; align-items:center; gap:8px; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--border-subtle); }
+.prof-grid-2        { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.prof-form-group    { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+.prof-label         { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; }
+.prof-input, .prof-textarea, .prof-select {
+  background:var(--bg-surface-2); border:1px solid var(--border-subtle); border-radius:8px;
+  color:var(--text-main); padding:10px 12px; font-size:13px; outline:none;
+  transition:border-color .2s; width:100%; box-sizing:border-box; font-family:inherit;
+}
+.prof-input:focus, .prof-textarea:focus, .prof-select:focus { border-color:var(--accent-gold); box-shadow:0 0 0 3px var(--accent-gold-soft); }
+.prof-textarea      { resize:vertical; min-height:80px; }
+.prof-btn-row       { display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+.prof-btn           { display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border-radius:8px; font-size:13px; font-weight:600; border:none; cursor:pointer; transition:.2s; text-decoration:none; }
+.prof-btn-primary   { background:linear-gradient(135deg,var(--accent-gold),#d97706); color:#0d0f18; }
+.prof-btn-primary:hover{ filter:brightness(1.1); transform:translateY(-1px); }
+.prof-btn-ghost     { background:transparent; border:1px solid var(--border-subtle); color:var(--text-body); }
+.prof-btn-ghost:hover{ border-color:var(--accent-gold); color:var(--accent-gold); }
+.prof-btn-danger    { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); color:var(--danger); }
+.prof-btn-danger:hover{ background:var(--danger); color:#fff; }
+
+/* Inline info boxes */
+.prof-infobox       { background:var(--bg-surface-2); border:1px solid var(--border-subtle); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+
+/* Danger zone */
+.prof-danger        { border-color:rgba(239,68,68,.25) !important; }
+.prof-danger .prof-card-title { color:var(--danger); }
+
+/* Skills chips */
+.skills-wrap        { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.skill-chip         { background:var(--accent-gold-soft); border:1px solid rgba(232,184,75,.3); color:var(--accent-gold); padding:3px 10px; border-radius:999px; font-size:12px; }
+
+/* CV dropzone */
+.cv-zone            { display:block; border:2px dashed var(--border-subtle); border-radius:10px; padding:28px; text-align:center; transition:.2s; cursor:pointer; }
+.cv-zone:hover      { border-color:var(--accent-gold); background:var(--accent-gold-soft); }
+.cv-zone i          { font-size:28px; color:var(--accent-gold); margin-bottom:8px; display:block; }
+.cv-zone p          { font-size:13px; color:var(--text-muted); margin:0; }
+
+/* Password strength */
+.pw-strength        { height:4px; border-radius:2px; background:var(--border-subtle); margin-top:6px; overflow:hidden; }
+.pw-strength-bar    { height:100%; border-radius:2px; transition:width .3s, background .3s; width:0; }
+
+/* Logo placeholder */
+.prof-logo-placeholder { width:70px; height:70px; border-radius:10px; background:var(--bg-surface-3); border:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:center; }
+
+/* Responsive */
+@media(max-width:900px){
+  .prof-layout  { grid-template-columns:1fr; }
+  .prof-sidebar { position:static; }
+  .prof-grid-2  { grid-template-columns:1fr; }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="container" style="max-width:1100px; padding:24px 16px;">
+
+  <div class="prof-layout">
+
+    <!-- ══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+    <aside class="prof-sidebar">
+
+      <!-- Avatar -->
+      <div class="prof-avatar-wrap" id="avatarWrap">
+        {% if user.avatar %}
+          <img src="{{ user.avatar.url }}" class="prof-avatar-img" id="avatarPreview" alt="Avatar">
+        {% else %}
+          <div class="prof-avatar-default" id="avatarDefault">{{ user.username|slice:":1"|upper }}</div>
+        {% endif %}
+        <label for="avatarInput" class="prof-avatar-edit" title="Change photo">
+          <i class="fas fa-camera"></i>
+        </label>
+      </div>
+
+      <!-- Hidden avatar form -->
+      <form method="post" action="{% url 'profiles:edit_profile' %}?tab=personal"
+            enctype="multipart/form-data" id="avatarForm">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="personal">
+        <input type="file" id="avatarInput" name="avatar" accept="image/*"
+               style="display:none;" onchange="submitAvatarForm()">
+        <!-- We carry all personal fields too to avoid wiping them -->
+        <input type="hidden" name="first_name" value="{{ user.first_name }}">
+        <input type="hidden" name="last_name"  value="{{ user.last_name }}">
+        <input type="hidden" name="phone"      value="{{ user.phone }}">
+        <input type="hidden" name="location"   value="{{ user.location }}">
+        <input type="hidden" name="bio"        value="{{ user.bio }}">
+      </form>
+
+      <div class="prof-name">{{ user.get_full_name|default:user.username }}</div>
+      <div class="prof-role">
+        {% if is_superadmin %}👑 Super Admin
+        {% elif is_company_admin %}🏢 Company Admin
+        {% elif is_staff %}👨‍💼 HR / Staff
+        {% else %}👤 Candidate{% endif %}
+      </div>
+
+      <!-- Completion Ring -->
+      <div class="prof-completion">
+        <div class="prof-ring-wrap">
+          <svg class="prof-ring-svg" width="80" height="80" viewBox="0 0 80 80">
+            <circle class="prof-ring-track" cx="40" cy="40" r="33"/>
+            <circle class="prof-ring-fill" cx="40" cy="40" r="33"
+              id="ringFill"
+              stroke-dasharray="207.3"
+              stroke-dashoffset="{{ 207.3|add:0 }}"/>
+          </svg>
+          <div class="prof-ring-pct">{{ completion }}%</div>
+        </div>
+        <div class="prof-comp-label">{% trans "Profile Completion" %}</div>
+      </div>
+
+      <!-- Hints -->
+      {% if hints %}
+      <div class="prof-hints">
+        {% for hint in hints %}
+        <div class="prof-hint-item"><i class="fas fa-circle-dot"></i> {{ hint }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Nav -->
+      <nav class="prof-nav">
+        <a class="prof-nav-link {% if active_tab == 'personal' %}active{% endif %}"
+           onclick="switchTab('personal')">
+          <i class="fas fa-user"></i> {% trans "Personal Info" %}
+        </a>
+
+        {% if is_candidate %}
+        <a class="prof-nav-link {% if active_tab == 'professional' %}active{% endif %}"
+           onclick="switchTab('professional')">
+          <i class="fas fa-briefcase"></i> {% trans "Professional" %}
+        </a>
+        <a class="prof-nav-link {% if active_tab == 'documents' %}active{% endif %}"
+           onclick="switchTab('documents')">
+          <i class="fas fa-file-alt"></i> {% trans "Documents" %}
+        </a>
+        {% endif %}
+
+        {% if is_company_admin %}
+        <a class="prof-nav-link {% if active_tab == 'company' %}active{% endif %}"
+           onclick="switchTab('company')">
+          <i class="fas fa-building"></i> {% trans "Company Info" %}
+        </a>
+        {% endif %}
+
+        {% if is_staff %}
+        <a class="prof-nav-link {% if active_tab == 'role' %}active{% endif %}"
+           onclick="switchTab('role')">
+          <i class="fas fa-id-badge"></i> {% trans "My Role" %}
+        </a>
+        {% endif %}
+
+        <a class="prof-nav-link {% if active_tab == 'account' %}active{% endif %}"
+           onclick="switchTab('account')">
+          <i class="fas fa-shield-halved"></i> {% trans "Account Settings" %}
+        </a>
+      </nav>
+
+      <!-- Shareable Link -->
+      {% if public_url %}
+      <div class="prof-share-box">
+        <div class="prof-share-title"><i class="fas fa-link"></i> {% trans "Shareable Link" %}</div>
+        <div class="prof-share-url">
+          <input class="prof-share-input" id="shareInput"
+                 value="{{ public_url }}" readonly>
+          <button class="prof-copy-btn" onclick="copyShare()">{% trans "Copy" %}</button>
+        </div>
+      </div>
+      {% endif %}
+
+    </aside>
+
+    <!-- ══ MAIN CONTENT ══════════════════════════════════════════════════════ -->
+    <div class="prof-main">
+
+      <!-- Messages -->
+      {% if messages %}
+        {% for msg in messages %}
+        <div class="alert alert-{% if 'success' in msg.tags %}success{% else %}danger{% endif %}" style="margin-bottom:16px;">
+          <i class="fas {% if 'success' in msg.tags %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+          {{ msg }}
+        </div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- ── TAB: Personal Info ── -->
+      <div class="prof-tab {% if active_tab == 'personal' %}active{% endif %}" id="tab-personal">
+        <div class="prof-card">
+          <div class="prof-card-title"><i class="fas fa-user"></i> {% trans "Personal Information" %}</div>
+          <form method="post" action="{% url 'profiles:edit_profile' %}?tab=personal"
+                enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="personal">
+            <div class="prof-grid-2">
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "First Name" %}</label>
+                <input class="prof-input" type="text" name="first_name" value="{{ user.first_name }}">
+              </div>
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Last Name" %}</label>
+                <input class="prof-input" type="text" name="last_name" value="{{ user.last_name }}">
+              </div>
+            </div>
+            <div class="prof-grid-2">
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Phone" %}</label>
+                <input class="prof-input" type="text" name="phone" value="{{ user.phone }}">
+              </div>
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Location" %}</label>
+                <input class="prof-input" type="text" name="location" value="{{ user.location }}">
+              </div>
+            </div>
+            <div class="prof-form-group">
+              <label class="prof-label">{% trans "Bio — About Me" %}</label>
+              <textarea class="prof-textarea" name="bio">{{ user.bio }}</textarea>
+            </div>
+            <!-- Avatar upload (shown in form but hidden, main trigger is sidebar camera) -->
+            <input type="file" name="avatar" accept="image/*" style="display:none;" id="avatarMainInput">
+            <div class="prof-btn-row">
+              <button type="submit" class="prof-btn prof-btn-primary">
+                <i class="fas fa-save"></i> {% trans "Save Changes" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ── TAB: Professional (Candidate only) ── -->
+      {% if is_candidate %}
+      <div class="prof-tab {% if active_tab == 'professional' %}active{% endif %}" id="tab-professional">
+        <div class="prof-card">
+          <div class="prof-card-title"><i class="fas fa-briefcase"></i> {% trans "Professional Information" %}</div>
+          <form method="post" action="{% url 'profiles:edit_profile' %}?tab=professional">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="professional">
+            <div class="prof-grid-2">
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Current Job Title" %}</label>
+                <input class="prof-input" type="text" name="current_title"
+                       value="{{ candidate.current_title|default:'' }}">
+              </div>
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Years of Experience" %}</label>
+                <input class="prof-input" type="number" name="years_of_experience" min="0" max="50"
+                       value="{{ candidate.years_of_experience|default:'' }}">
+              </div>
+            </div>
+            <div class="prof-form-group">
+              <label class="prof-label">{% trans "Skills" %} <span style="color:#64748b;font-weight:400;">{% trans "(comma-separated)" %}</span></label>
+              <input class="prof-input" type="text" name="skills" id="skillsInput"
+                     value="{{ candidate.skills|default:'' }}" placeholder="Python, Django, React…"
+                     oninput="renderSkillChips()">
+              <div class="skills-wrap" id="skillsChips"></div>
+            </div>
+            <div class="prof-form-group">
+              <label class="prof-label">{% trans "About Me / Bio" %}</label>
+              <textarea class="prof-textarea" name="bio">{{ candidate.bio|default:'' }}</textarea>
+            </div>
+            <div class="prof-grid-2">
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Availability" %}</label>
+                <input class="prof-input" type="text" name="availability"
+                       value="{{ candidate.availability|default:'' }}" placeholder="{% trans 'Immediately / 1 month…' %}">
+              </div>
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Expected Salary" %}</label>
+                <input class="prof-input" type="text" name="expected_salary"
+                       value="{{ candidate.expected_salary|default:'' }}" placeholder="{% trans 'e.g. $70K/year' %}">
+              </div>
+            </div>
+            <div style="border-top:1px solid var(--border-subtle); padding-top:16px; margin-top:8px;">
+              <div class="prof-card-title" style="font-size:13px; margin-bottom:14px;">
+                <i class="fas fa-link"></i> {% trans "Links & Profiles" %}
+              </div>
+              <div class="prof-form-group">
+                <label class="prof-label"><i class="fab fa-linkedin" style="color:#0a66c2;"></i> LinkedIn</label>
+                <input class="prof-input" type="url" name="linkedin_url"
+                       value="{{ candidate.linkedin_url|default:'' }}" placeholder="https://linkedin.com/in/…">
+              </div>
+              <div class="prof-grid-2">
+                <div class="prof-form-group">
+                <label class="prof-label"><i class="fab fa-github" style="color:var(--text-main);"></i> GitHub</label>
+                  <input class="prof-input" type="url" name="github_url"
+                         value="{{ candidate.github_url|default:'' }}" placeholder="https://github.com/…">
+                </div>
+                <div class="prof-form-group">
+                  <label class="prof-label"><i class="fas fa-globe" style="color:#3b82f6;"></i> Portfolio</label>
+                  <input class="prof-input" type="url" name="portfolio_url"
+                         value="{{ candidate.portfolio_url|default:'' }}" placeholder="https://…">
+                </div>
+              </div>
+            </div>
+            <div class="prof-btn-row">
+              <button type="submit" class="prof-btn prof-btn-primary">
+                <i class="fas fa-save"></i> {% trans "Save Changes" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ── TAB: Documents (Candidate only) ── -->
+      <div class="prof-tab {% if active_tab == 'documents' %}active{% endif %}" id="tab-documents">
+        <div class="prof-card">
+          <div class="prof-card-title"><i class="fas fa-file-alt"></i> {% trans "Documents" %}</div>
+          <form method="post" action="{% url 'profiles:edit_profile' %}?tab=documents"
+                enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="documents">
+            {% if candidate.cv_file %}
+            <div class="prof-infobox" style="display:flex; align-items:center; gap:12px;">
+              <i class="fas fa-file-pdf" style="font-size:28px; color:var(--danger); flex-shrink:0;"></i>
+              <div style="flex:1; min-width:0;">
+                <div style="font-weight:600; color:var(--text-main); font-size:14px;">{% trans "Current CV" %}</div>
+                <div style="color:var(--text-muted); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ candidate.cv_file.name }}</div>
+              </div>
+              <a href="{{ candidate.cv_file.url }}" target="_blank" class="prof-btn prof-btn-ghost" style="font-size:12px; padding:6px 14px; flex-shrink:0;">
+                <i class="fas fa-download"></i> {% trans "View CV" %}
+              </a>
+            </div>
+            {% endif %}
+            <label for="cvInput" class="cv-zone" id="cvZone">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <p>{% if candidate.cv_file %}{% trans "Replace CV" %}{% else %}{% trans "Upload CV" %}{% endif %}</p>
+              <p style="font-size:11px; color:#475569; margin-top:4px;">PDF, DOC, DOCX — {% trans "max 5MB" %}</p>
+              <input type="file" name="cv_file" id="cvInput" accept=".pdf,.doc,.docx"
+                     style="display:none;" onchange="showCvName(this)">
+            </label>
+            <div id="cvFileName" style="text-align:center; font-size:12px; color:#f59e0b; margin-top:8px;"></div>
+            <div class="prof-btn-row">
+              <button type="submit" class="prof-btn prof-btn-primary">
+                <i class="fas fa-save"></i> {% trans "Upload CV" %}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Quick links display -->
+        {% if candidate.linkedin_url or candidate.github_url or candidate.portfolio_url %}
+        <div class="prof-card">
+          <div class="prof-card-title"><i class="fas fa-link"></i> {% trans "Your Links" %}</div>
+          {% if candidate.linkedin_url %}
+          <a href="{{ candidate.linkedin_url }}" target="_blank" class="prof-btn prof-btn-ghost" style="margin:4px;">
+            <i class="fab fa-linkedin" style="color:#0a66c2;"></i> LinkedIn
+          </a>
+          {% endif %}
+          {% if candidate.github_url %}
+          <a href="{{ candidate.github_url }}" target="_blank" class="prof-btn prof-btn-ghost" style="margin:4px;">
+            <i class="fab fa-github"></i> GitHub
+          </a>
+          {% endif %}
+          {% if candidate.portfolio_url %}
+          <a href="{{ candidate.portfolio_url }}" target="_blank" class="prof-btn prof-btn-ghost" style="margin:4px;">
+            <i class="fas fa-globe" style="color:#3b82f6;"></i> Portfolio
+          </a>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- ── TAB: Company Info (Company Admin only) ── -->
+      {% if is_company_admin and company %}
+      <div class="prof-tab {% if active_tab == 'company' %}active{% endif %}" id="tab-company">
+        <div class="prof-card">
+          <div class="prof-card-title"><i class="fas fa-building"></i> {% trans "Company Information" %}</div>
+          <form method="post" action="{% url 'profiles:edit_profile' %}?tab=company"
+                enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="company">
+
+            <div class="prof-infobox" style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+              {% if company.logo %}
+              <img src="{{ company.logo.url }}" alt="Logo"
+                   style="width:70px; height:70px; border-radius:10px; object-fit:cover; border:2px solid var(--border-subtle);">
+              {% else %}
+              <div class="prof-logo-placeholder">
+                <i class="fas fa-building" style="font-size:28px; color:var(--text-muted);"></i>
+              </div>
+              {% endif %}
+              <div>
+                <div style="font-weight:600; color:var(--text-main); margin-bottom:4px;">{% trans "Company Logo" %}</div>
+                <label class="prof-btn prof-btn-ghost" style="cursor:pointer; font-size:12px; padding:6px 12px;">
+                  <i class="fas fa-upload"></i> {% trans "Upload Logo" %}
+                  <input type="file" name="logo" accept="image/*" style="display:none;">
+                </label>
+              </div>
+            </div>
+
+            <div class="prof-grid-2">
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Company Name" %}</label>
+                <input class="prof-input" type="text" name="company_name" value="{{ company.company_name }}" required>
+              </div>
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Industry" %}</label>
+                <input class="prof-input" type="text" name="industry" value="{{ company.industry }}">
+              </div>
+            </div>
+            <div class="prof-grid-2">
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Company Size" %}</label>
+                <select class="prof-select" name="company_size">
+                  <option value="">{% trans "Select…" %}</option>
+                  {% for val, lbl in company_form.fields.company_size.widget.choices %}
+                  <option value="{{ val }}" {% if company.company_size == val %}selected{% endif %}>{{ lbl }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Location" %}</label>
+                <input class="prof-input" type="text" name="location" value="{{ company.location }}">
+              </div>
+            </div>
+            <div class="prof-grid-2">
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Phone" %}</label>
+                <input class="prof-input" type="text" name="phone" value="{{ company.phone }}">
+              </div>
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Website" %}</label>
+                <input class="prof-input" type="url" name="website" value="{{ company.website|default:'' }}">
+              </div>
+            </div>
+            <div class="prof-form-group">
+              <label class="prof-label">{% trans "Description" %}</label>
+              <textarea class="prof-textarea" name="description" rows="4">{{ company.description }}</textarea>
+            </div>
+            <div class="prof-btn-row">
+              <button type="submit" class="prof-btn prof-btn-primary">
+                <i class="fas fa-save"></i> {% trans "Save Company Info" %}
+              </button>
+            </div>
+          </form>
+        </div>
+        {% if company.slug %}
+        <div class="prof-card">
+          <div class="prof-card-title"><i class="fas fa-globe"></i> {% trans "Public Company Page" %}</div>
+          <p style="color:#64748b; font-size:13px; margin-bottom:12px;">
+            {% trans "Share your company page to showcase your brand and open positions." %}
+          </p>
+          <a href="{% url 'profiles:public_company' company.slug %}" target="_blank"
+             class="prof-btn prof-btn-ghost">
+            <i class="fas fa-external-link-alt"></i> {% trans "View Public Page" %}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- ── TAB: My Role (Staff only) ── -->
+      {% if is_staff %}
+      <div class="prof-tab {% if active_tab == 'role' %}active{% endif %}" id="tab-role">
+        <div class="prof-card">
+          <div class="prof-card-title"><i class="fas fa-id-badge"></i> {% trans "My Role" %}</div>
+          <form method="post" action="{% url 'profiles:edit_profile' %}?tab=role">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="staff">
+            <div class="prof-form-group">
+              <label class="prof-label">{% trans "Position / Department" %}</label>
+              <input class="prof-input" type="text" name="position" value="{{ user.position }}">
+            </div>
+            <div class="prof-infobox">
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px;">{% trans "Team Role" %}</div>
+              <span style="background:var(--accent-gold-soft); border:1px solid rgba(232,184,75,.3); color:var(--accent-gold); padding:4px 12px; border-radius:999px; font-size:12px;">
+                {{ user.get_team_role_display|default:"Member" }}
+              </span>
+            </div>
+            <div class="prof-btn-row">
+              <button type="submit" class="prof-btn prof-btn-primary">
+                <i class="fas fa-save"></i> {% trans "Save" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ── TAB: Account Settings ── -->
+      <div class="prof-tab {% if active_tab == 'account' %}active{% endif %}" id="tab-account">
+
+        <!-- Change Password -->
+        <div class="prof-card">
+          <div class="prof-card-title"><i class="fas fa-lock"></i> {% trans "Change Password" %}</div>
+          <form method="post" action="{% url 'profiles:edit_profile' %}?tab=account">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="password">
+            <div class="prof-form-group">
+              <label class="prof-label">{% trans "Current Password" %}</label>
+              <input class="prof-input" type="password" name="old_password" autocomplete="current-password">
+            </div>
+            <div class="prof-grid-2">
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "New Password" %}</label>
+                <input class="prof-input" type="password" name="new_password1" id="newPw1"
+                       autocomplete="new-password" oninput="checkPwStrength(this.value)">
+                <div class="pw-strength"><div class="pw-strength-bar" id="pwBar"></div></div>
+              </div>
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Confirm New Password" %}</label>
+                <input class="prof-input" type="password" name="new_password2" autocomplete="new-password">
+              </div>
+            </div>
+            {% if password_form.errors %}
+              {% for field in password_form %}
+                {% for err in field.errors %}
+                <div style="color:#f87171; font-size:12px; margin-bottom:4px;">{{ err }}</div>
+                {% endfor %}
+              {% endfor %}
+            {% endif %}
+            <div class="prof-btn-row">
+              <button type="submit" class="prof-btn prof-btn-primary">
+                <i class="fas fa-key"></i> {% trans "Update Password" %}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Danger Zone -->
+        {% if not is_superadmin %}
+        <div class="prof-card prof-danger">
+          <div class="prof-card-title"><i class="fas fa-triangle-exclamation"></i> {% trans "Danger Zone" %}</div>
+          <p style="color:#94a3b8; font-size:13px; margin-bottom:16px;">
+            {% trans "Disabling your account will prevent you from logging in. This action cannot be easily undone." %}
+          </p>
+          <details>
+            <summary style="cursor:pointer; color:#ef4444; font-size:13px; font-weight:600; margin-bottom:12px;">
+              ⚠️ {% trans "Delete / Disable Account" %}
+            </summary>
+            <form method="post" action="{% url 'profiles:edit_profile' %}?tab=account"
+                  style="margin-top:12px; padding:16px; background:var(--bg-surface-2); border:1px solid var(--border-subtle); border-radius:10px;">
+              {% csrf_token %}
+              <input type="hidden" name="form_type" value="delete_account">
+              <div class="prof-form-group">
+                <label class="prof-label">{% trans "Type your username to confirm:" %} <strong style="color:var(--text-main);">{{ user.username }}</strong></label>
+                <input class="prof-input" type="text" name="confirm_delete"
+                       placeholder="{{ user.username }}" autocomplete="off">
+              </div>
+              <button type="submit" class="prof-btn prof-btn-danger">
+                <i class="fas fa-power-off"></i> {% trans "Disable My Account" %}
+              </button>
+            </form>
+          </details>
+        </div>
+        {% endif %}
+
+      </div><!-- /account tab -->
+
+    </div><!-- /prof-main -->
+  </div><!-- /prof-layout -->
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Tab switcher ────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.prof-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.prof-nav-link').forEach(l => l.classList.remove('active'));
+  var tab = document.getElementById('tab-' + name);
+  if (tab) tab.classList.add('active');
+  document.querySelectorAll('.prof-nav-link').forEach(function(l) {
+    if (l.getAttribute('onclick') === "switchTab('" + name + "')") l.classList.add('active');
+  });
+  history.replaceState(null, '', '?tab=' + name);
+}
+
+// ── Avatar preview ────────────────────────────────────────────────────────
+function submitAvatarForm() {
+  var file = document.getElementById('avatarInput').files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var prev = document.getElementById('avatarPreview');
+    var def  = document.getElementById('avatarDefault');
+    if (prev) {
+      prev.src = e.target.result;
+    } else if (def) {
+      def.style.display = 'none';
+      var img = document.createElement('img');
+      img.id = 'avatarPreview'; img.className = 'prof-avatar-img';
+      img.src = e.target.result; img.alt = 'Avatar';
+      document.getElementById('avatarWrap').insertBefore(img, def.nextSibling);
+    }
+  };
+  reader.readAsDataURL(file);
+  document.getElementById('avatarForm').submit();
+}
+
+// ── Completion ring animation ────────────────────────────────────────────
+(function() {
+  var pct    = {{ completion }};
+  var circ   = 207.3;
+  var offset = circ - (circ * pct / 100);
+  var el     = document.getElementById('ringFill');
+  if (el) { el.style.strokeDashoffset = circ; setTimeout(function(){ el.style.strokeDashoffset = offset; }, 300); }
+})();
+
+// ── Skills chips ────────────────────────────────────────────────────────
+function renderSkillChips() {
+  var raw    = document.getElementById('skillsInput').value;
+  var chips  = document.getElementById('skillsChips');
+  if (!chips) return;
+  chips.innerHTML = '';
+  raw.split(',').forEach(function(s) {
+    s = s.trim();
+    if (!s) return;
+    var span = document.createElement('span');
+    span.className = 'skill-chip'; span.textContent = s;
+    chips.appendChild(span);
+  });
+}
+renderSkillChips();
+
+// ── CV file name ─────────────────────────────────────────────────────────
+function showCvName(input) {
+  var el = document.getElementById('cvFileName');
+  if (el && input.files[0]) el.textContent = '📄 ' + input.files[0].name;
+}
+
+// ── Password strength ────────────────────────────────────────────────────
+function checkPwStrength(val) {
+  var bar = document.getElementById('pwBar');
+  if (!bar) return;
+  var score = 0;
+  if (val.length >= 8)            score++;
+  if (/[A-Z]/.test(val))          score++;
+  if (/[0-9]/.test(val))          score++;
+  if (/[^A-Za-z0-9]/.test(val))   score++;
+  var colors = ['#ef4444','#f59e0b','#3b82f6','#22c55e'];
+  var widths  = ['25%','50%','75%','100%'];
+  bar.style.width      = score ? widths[score-1] : '0';
+  bar.style.background = score ? colors[score-1] : '';
+}
+
+// ── Copy shareable link ────────────────────────────────────────────────────
+function copyShare() {
+  var inp = document.getElementById('shareInput');
+  if (!inp) return;
+  navigator.clipboard.writeText(inp.value).then(function() {
+    var btn = event.target;
+    btn.textContent = '{% trans "Copied!" %}';
+    setTimeout(function(){ btn.textContent = '{% trans "Copy" %}'; }, 2000);
+  });
+}
+</script>
+{% endblock %}

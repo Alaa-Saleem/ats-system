@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ Section</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ── CSS Variables & Reset ── */
+        :root {
+            --primary: #c79d6a;
+            --secondary: #343861;
+            --bg: #faf8f5;
+            --bg-alt: #f3efe9;
+            --card: #ffffff;
+            --text: #1c1c2e;
+            --text-muted: #6b6b80;
+            --border: #e8e2d9;
+            --white: #ffffff;
+            --shadow-sm: 0 2px 8px rgba(52, 56, 97, 0.04);
+            --radius: 16px;
+            --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-alt);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── Scroll Animation ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 {
+            transition-delay: 0.1s;
+        }
+
+        .reveal-delay-2 {
+            transition-delay: 0.2s;
+        }
+
+        .reveal-delay-3 {
+            transition-delay: 0.3s;
+        }
+
+        .reveal-delay-4 {
+            transition-delay: 0.4s;
+        }
+
+        .reveal-delay-5 {
+            transition-delay: 0.5s;
+        }
+
+        /* ── Section ── */
+        .section {
+            padding: 120px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 620px;
+            margin: 0 auto 72px;
+        }
+
+        .section-header .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            font-size: 0.78rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .section-header .eyebrow::before,
+        .section-header .eyebrow::after {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--primary);
+            opacity: 0.4;
+        }
+
+        .section-header h2 {
+            font-size: 2.8rem;
+            color: var(--secondary);
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        /* ── FAQ ── */
+        .faq-list {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .faq-item:hover {
+            border-color: rgba(199, 157, 106, 0.3);
+        }
+
+        .faq-item.active {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .faq-question {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 24px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--secondary);
+            gap: 16px;
+        }
+
+        .faq-arrow {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border-radius: 50%;
+            background: var(--bg-alt);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text-muted);
+        }
+
+        .faq-arrow svg {
+            width: 14px;
+            height: 14px;
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-arrow {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .faq-item.active .faq-arrow svg {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .faq-answer p {
+            padding: 0 28px 24px;
+            color: var(--text-muted);
+            line-height: 1.8;
+            font-size: 0.92rem;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 80px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!--              FAQ SECTION               -->
+    <!-- ═══════════════════════════════════════ -->
+    <section class="section" id="faq">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="eyebrow">Support</div>
+                <h2>Frequently Asked Questions</h2>
+                <p>Find answers to common questions about Anwer Alosaimi Compound.</p>
+            </div>
+            <div class="faq-list">
+                <div class="faq-item reveal reveal-delay-1">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What is the starting price of the apartments?
+                        <span class="faq-arrow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Our apartments start at competitive market prices. Please contact our sales team for the most
+                            up-to-date pricing and available units.</p>
+                    </div>
+                </div>
+                <div class="faq-item reveal reveal-delay-2">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What are the payment options available?
+                        <span class="faq-arrow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>We offer flexible payment plans including installments, bank financing options, and full
+                            payment discounts. Our team will guide you through the best option for your needs.</p>
+                    </div>
+                </div>
+                <div class="faq-item reveal reveal-delay-3">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Is the compound pet-friendly?
+                        <span class="faq-arrow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes, Anwer Alosaimi Compound is pet-friendly with designated areas for pets within the
+                            community green spaces.</p>
+                    </div>
+                </div>
+                <div class="faq-item reveal reveal-delay-4">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        What amenities are included in the apartments?
+                        <span class="faq-arrow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Every apartment comes with modern finishes, central air conditioning, fitted kitchen, and
+                            access to all compound amenities including the pool, gym, gardens, and children's play
+                            areas.</p>
+                    </div>
+                </div>
+                <div class="faq-item reveal reveal-delay-5">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        Are there any financing options available?
+                        <span class="faq-arrow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes, we partner with leading banks to offer attractive financing solutions with competitive
+                            interest rates and flexible terms.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // ── FAQ Section JS ──
+
+        function toggleFaq(btn) {
+            const item = btn.parentElement;
+            const answer = item.querySelector('.faq-answer');
+            const isActive = item.classList.contains('active');
+
+            // Close all open items
+            document.querySelectorAll('.faq-item').forEach(el => {
+                el.classList.remove('active');
+                el.querySelector('.faq-answer').style.maxHeight = '0';
+            });
+
+            // Open clicked item if it was closed
+            if (!isActive) {
+                item.classList.add('active');
+                answer.style.maxHeight = answer.scrollHeight + 'px';
+            }
+        }
+
+        // Scroll Reveal
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+
+</body>
+
+</html>

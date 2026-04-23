@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ company.company_name }} — Company Profile{% endblock %}
+
+{% block sidebar %}{% endblock %}
+{% block main_margin %}margin: 0; width: 100%;{% endblock %}
+
+{% block extra_css %}
+<style>
+.co-hero         { background:var(--bg-surface-2); border-bottom:1px solid var(--border-subtle); padding:56px 0 36px; }
+.co-container    { max-width:920px; margin:0 auto; padding:0 20px; }
+.co-hero-inner   { display:flex; align-items:flex-start; gap:28px; }
+.co-logo         { width:100px; height:100px; border-radius:14px; object-fit:cover; border:2px solid var(--border-subtle); flex-shrink:0; }
+.co-logo-def     { width:100px; height:100px; border-radius:14px; background:var(--bg-surface); border:2px solid var(--border-subtle); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.co-logo-def i   { font-size:36px; color:var(--text-muted); }
+.co-info         { flex:1; }
+.co-name         { font-size:26px; font-weight:800; color:var(--text-main); margin-bottom:6px; }
+.co-industry     { font-size:14px; color:var(--accent-gold); margin-bottom:10px; font-weight:600; }
+.co-meta         { display:flex; flex-wrap:wrap; gap:12px; }
+.co-meta-item    { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); }
+.co-meta-item i  { color:var(--accent-gold); font-size:11px; }
+.co-action-btns  { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+.co-btn          { display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none; border:1px solid var(--accent-gold-soft); color:var(--accent-gold); background:transparent; cursor:pointer; transition:.2s; }
+.co-btn:hover    { background:var(--accent-gold-soft); }
+.co-btn-primary  { background:linear-gradient(135deg,var(--accent-gold),#d97706); color:#0d0f18; border:none; }
+
+/* Body */
+.co-body         { padding:36px 0; background:var(--bg-main); }
+.co-cols         { display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start; }
+.co-section      { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:14px; padding:24px; margin-bottom:20px; box-shadow:var(--card-shadow); }
+.co-sec-title    { font-size:13px; font-weight:700; color:var(--accent-gold); text-transform:uppercase; letter-spacing:.6px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.co-desc         { font-size:14px; color:var(--text-body); line-height:1.8; }
+
+/* Job cards */
+.job-card        { background:var(--bg-surface-2); border:1px solid var(--border-subtle); border-radius:12px; padding:18px; margin-bottom:12px; transition:.2s; }
+.job-card:hover  { border-color:var(--accent-gold); transform:translateY(-2px); box-shadow:var(--card-shadow-hover); }
+.job-title       { font-size:15px; font-weight:700; color:var(--text-main); margin-bottom:6px; }
+.job-meta        { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
+.job-meta-tag    { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--text-muted); }
+.job-meta-tag i  { color:var(--accent-gold); font-size:10px; }
+.job-apply-btn   { display:inline-flex; align-items:center; gap:6px; padding:7px 18px; border-radius:7px; font-size:12px; font-weight:600; text-decoration:none; background:linear-gradient(135deg,var(--accent-gold),#d97706); color:#0d0f18; }
+.job-badge       { display:inline-block; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.25); color:var(--success); padding:2px 8px; border-radius:999px; font-size:11px; }
+
+/* Sidebar info card */
+.co-info-card    { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:14px; padding:20px; margin-bottom:16px; box-shadow:var(--card-shadow); }
+.co-info-row     { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border-subtle); font-size:13px; }
+.co-info-row:last-child{ border-bottom:none; }
+.co-info-row-lbl { color:var(--text-muted); }
+.co-info-row-val { color:var(--text-main); font-weight:600; }
+
+/* Toast */
+.share-toast     { position:fixed; bottom:24px; right:24px; background:var(--bg-surface); border:1px solid var(--accent-gold-soft); color:var(--accent-gold); padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; transform:translateY(80px); opacity:0; transition:.35s; z-index:999; box-shadow:var(--card-shadow); }
+.share-toast.show{ transform:translateY(0); opacity:1; }
+
+@media(max-width:700px){
+  .co-hero-inner{ flex-direction:column; align-items:center; text-align:center; }
+  .co-meta, .co-action-btns{ justify-content:center; }
+  .co-cols{ grid-template-columns:1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="co-hero">
+  <div class="co-container">
+    <div class="co-hero-inner">
+
+      {% if company.logo %}
+        <img src="{{ company.logo.url }}" class="co-logo" alt="{{ company.company_name }}">
+      {% else %}
+        <div class="co-logo-def"><i class="fas fa-building"></i></div>
+      {% endif %}
+
+      <div class="co-info">
+        <div class="co-name">{{ company.company_name }}</div>
+        {% if company.industry %}
+        <div class="co-industry">{{ company.industry }}</div>
+        {% endif %}
+        <div class="co-meta">
+          {% if company.location %}
+          <span class="co-meta-item"><i class="fas fa-location-dot"></i> {{ company.location }}</span>
+          {% endif %}
+          {% if company.company_size %}
+          <span class="co-meta-item"><i class="fas fa-users"></i> {{ company.company_size }} employees</span>
+          {% endif %}
+          {% if company.website %}
+          <span class="co-meta-item"><i class="fas fa-globe"></i>
+            <a href="{{ company.website }}" target="_blank" style="color:#f59e0b; text-decoration:none;">{{ company.website }}</a>
+          </span>
+          {% endif %}
+          {% if company.phone %}
+          <span class="co-meta-item"><i class="fas fa-phone"></i> {{ company.phone }}</span>
+          {% endif %}
+        </div>
+        <div class="co-action-btns">
+          <span class="co-info-row-val" style="font-size:13px; color:#4ade80;">
+            <i class="fas fa-circle" style="font-size:8px;"></i> {{ jobs|length }} Open Position{{ jobs|length|pluralize }}
+          </span>
+          <button class="co-btn" onclick="shareCompany()">
+            <i class="fas fa-share-nodes"></i> Share
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="co-body">
+  <div class="co-container">
+    <div class="co-cols">
+
+      <!-- Main content -->
+      <div>
+        {% if company.description %}
+        <div class="co-section">
+          <div class="co-sec-title"><i class="fas fa-info-circle"></i> About {{ company.company_name }}</div>
+          <p class="co-desc">{{ company.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Jobs -->
+        <div class="co-section">
+          <div class="co-sec-title">
+            <i class="fas fa-briefcase"></i> Open Positions
+            <span style="background:#f59e0b20; border:1px solid #f59e0b40; color:#f59e0b; padding:2px 10px; border-radius:999px; font-size:11px;">{{ jobs|length }}</span>
+          </div>
+
+          {% for job in jobs %}
+          <div class="job-card">
+            <div class="job-title">{{ job.title }}</div>
+            <div class="job-meta">
+              {% if job.location %}
+              <span class="job-meta-tag"><i class="fas fa-location-dot"></i> {{ job.location }}</span>
+              {% endif %}
+              <span class="job-meta-tag"><i class="fas fa-briefcase"></i> {{ job.get_job_type_display }}</span>
+              {% if job.salary %}
+              <span class="job-meta-tag"><i class="fas fa-dollar-sign"></i> {{ job.salary }}</span>
+              {% endif %}
+              {% if job.application_deadline %}
+              <span class="job-meta-tag"><i class="fas fa-calendar"></i> Deadline: {{ job.application_deadline }}</span>
+              {% endif %}
+              <span class="job-badge">Open</span>
+            </div>
+            {% if job.description %}
+            <p style="font-size:12px; color:#64748b; margin-bottom:12px; line-height:1.6;">
+              {{ job.description|truncatewords:30 }}
+            </p>
+            {% endif %}
+            <a href="{% url 'jobs:public_apply' job.pk %}" class="job-apply-btn">
+              <i class="fas fa-paper-plane"></i> Apply Now
+            </a>
+          </div>
+          {% empty %}
+          <div style="text-align:center; padding:40px; color:#475569;">
+            <i class="fas fa-briefcase" style="font-size:32px; margin-bottom:12px;"></i>
+            <div>No open positions right now.</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <div class="co-info-card">
+          <div class="co-sec-title" style="margin-bottom:12px;"><i class="fas fa-building"></i> Company Info</div>
+          {% if company.industry %}
+          <div class="co-info-row">
+            <span class="co-info-row-lbl">Industry</span>
+            <span class="co-info-row-val">{{ company.industry }}</span>
+          </div>
+          {% endif %}
+          {% if company.company_size %}
+          <div class="co-info-row">
+            <span class="co-info-row-lbl">Size</span>
+            <span class="co-info-row-val">{{ company.company_size }}</span>
+          </div>
+          {% endif %}
+          {% if company.location %}
+          <div class="co-info-row">
+            <span class="co-info-row-lbl">Location</span>
+            <span class="co-info-row-val">{{ company.location }}</span>
+          </div>
+          {% endif %}
+          {% if company.phone %}
+          <div class="co-info-row">
+            <span class="co-info-row-lbl">Phone</span>
+            <span class="co-info-row-val">{{ company.phone }}</span>
+          </div>
+          {% endif %}
+          <div class="co-info-row">
+            <span class="co-info-row-lbl">Open Jobs</span>
+            <span class="co-info-row-val" style="color:#4ade80;">{{ jobs|length }}</span>
+          </div>
+        </div>
+        {% if company.website %}
+        <a href="{{ company.website }}" target="_blank" class="co-btn co-btn-primary" style="width:100%; justify-content:center; box-sizing:border-box;">
+          <i class="fas fa-globe"></i> Company Website
+        </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="share-toast" id="shareToast">🔗 Link copied to clipboard!</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function shareCompany() {
+  var url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(showToast);
+  } else {
+    var el = document.createElement('textarea');
+    el.value = url; document.body.appendChild(el); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+    showToast();
+  }
+}
+function showToast() {
+  var t = document.getElementById('shareToast');
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+</script>
+{% endblock %}

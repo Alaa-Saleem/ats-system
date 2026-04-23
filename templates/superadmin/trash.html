@@ -1,0 +1,154 @@
+{% extends "superadmin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Trash" %}{% endblock %}
+{% block page_title %}{% trans "Trash" %}{% endblock %}
+{% block page_subtitle %}{{ trash_total }} {% trans "item(s) in trash" %}{% endblock %}
+
+{% block content %}
+
+<!-- Sub-tabs -->
+<div class="sa-tabs" style="margin-bottom:0; border-radius:12px 12px 0 0; overflow:hidden;">
+  <a href="?tab=companies"    class="sa-tab {% if current_tab == 'companies'    %}active{% endif %}"><i class="fas fa-building"></i> {% trans "Companies" %} ({{ trash_companies|length }})</a>
+  <a href="?tab=jobs"         class="sa-tab {% if current_tab == 'jobs'         %}active{% endif %}"><i class="fas fa-briefcase"></i> {% trans "Jobs" %} ({{ trash_jobs|length }})</a>
+  <a href="?tab=candidates"   class="sa-tab {% if current_tab == 'candidates'   %}active{% endif %}"><i class="fas fa-user-tie"></i> {% trans "Candidates" %} ({{ trash_candidates|length }})</a>
+  <a href="?tab=applications" class="sa-tab {% if current_tab == 'applications' %}active{% endif %}"><i class="fas fa-file-alt"></i> {% trans "Applications" %} ({{ trash_applications|length }})</a>
+</div>
+
+<div class="sa-panel" style="border-radius:0 0 12px 12px;">
+
+  {% if current_tab == 'companies' %}
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead><tr><th>{% trans "Company" %}</th><th>{% trans "Industry" %}</th><th>{% trans "Deleted At" %}</th><th style="text-align:end;">{% trans "Actions" %}</th></tr></thead>
+      <tbody>
+        {% for c in trash_companies %}
+        <tr>
+          <td><span style="font-weight:600;">{{ c.company_name }}</span></td>
+          <td class="muted">{{ c.industry|default:"—" }}</td>
+          <td class="muted">{{ c.deleted_at|date:"d M Y H:i" }}</td>
+          <td style="text-align:end;">
+            <div class="sa-flex" style="justify-content:flex-end;">
+              <form method="post" action="{% url 'superadmin:restore_item' 'company' c.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-green sa-btn-sm"><i class="fas fa-undo"></i> {% trans "Restore" %}</button>
+              </form>
+              <form method="post" action="{% url 'superadmin:permanent_delete' 'company' c.pk %}" style="display:inline;"
+                    onsubmit="return confirm('{% trans "Permanently delete? This CANNOT be undone." %}')">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-danger sa-btn-sm"><i class="fas fa-times"></i> {% trans "Delete Forever" %}</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4"><div class="sa-empty"><div class="sa-empty-icon"><i class="fas fa-check-circle"></i></div><div class="sa-empty-title">{% trans "No deleted companies" %}</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif current_tab == 'jobs' %}
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead><tr><th>{% trans "Job Title" %}</th><th>{% trans "Company" %}</th><th>{% trans "Status" %}</th><th>{% trans "Deleted At" %}</th><th style="text-align:end;">{% trans "Actions" %}</th></tr></thead>
+      <tbody>
+        {% for j in trash_jobs %}
+        <tr>
+          <td><span style="font-weight:600;">{{ j.title }}</span></td>
+          <td class="muted">{{ j.company.company_name }}</td>
+          <td><span class="sa-badge {{ j.status }}">{{ j.get_status_display }}</span></td>
+          <td class="muted">{{ j.deleted_at|date:"d M Y H:i" }}</td>
+          <td style="text-align:end;">
+            <div class="sa-flex" style="justify-content:flex-end;">
+              <form method="post" action="{% url 'superadmin:restore_item' 'job' j.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-green sa-btn-sm"><i class="fas fa-undo"></i> {% trans "Restore" %}</button>
+              </form>
+              <form method="post" action="{% url 'superadmin:permanent_delete' 'job' j.pk %}" style="display:inline;"
+                    onsubmit="return confirm('{% trans "Permanently delete? This CANNOT be undone." %}')">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-danger sa-btn-sm"><i class="fas fa-times"></i> {% trans "Delete Forever" %}</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5"><div class="sa-empty"><div class="sa-empty-icon"><i class="fas fa-check-circle"></i></div><div class="sa-empty-title">{% trans "No deleted jobs" %}</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif current_tab == 'candidates' %}
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead><tr><th>{% trans "Candidate" %}</th><th>{% trans "Email" %}</th><th>{% trans "Company" %}</th><th>{% trans "Deleted At" %}</th><th style="text-align:end;">{% trans "Actions" %}</th></tr></thead>
+      <tbody>
+        {% for c in trash_candidates %}
+        <tr>
+          <td><span style="font-weight:600;">{{ c.full_name }}</span></td>
+          <td class="muted">{{ c.email|default:"—" }}</td>
+          <td class="muted">{{ c.company.company_name|default:"—" }}</td>
+          <td class="muted">{{ c.deleted_at|date:"d M Y H:i" }}</td>
+          <td style="text-align:end;">
+            <div class="sa-flex" style="justify-content:flex-end;">
+              <form method="post" action="{% url 'superadmin:restore_item' 'candidate' c.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-green sa-btn-sm"><i class="fas fa-undo"></i> {% trans "Restore" %}</button>
+              </form>
+              <form method="post" action="{% url 'superadmin:permanent_delete' 'candidate' c.pk %}" style="display:inline;"
+                    onsubmit="return confirm('{% trans "Permanently delete? This CANNOT be undone." %}')">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-danger sa-btn-sm"><i class="fas fa-times"></i> {% trans "Delete Forever" %}</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5"><div class="sa-empty"><div class="sa-empty-icon"><i class="fas fa-check-circle"></i></div><div class="sa-empty-title">{% trans "No deleted candidates" %}</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <!-- Applications -->
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead><tr><th>{% trans "Candidate" %}</th><th>{% trans "Job" %}</th><th>{% trans "Stage" %}</th><th>{% trans "Deleted At" %}</th><th style="text-align:end;">{% trans "Actions" %}</th></tr></thead>
+      <tbody>
+        {% for a in trash_applications %}
+        <tr>
+          <td><span style="font-weight:600;">{{ a.candidate.full_name }}</span></td>
+          <td class="muted">{{ a.job.title }}</td>
+          <td>
+            <span class="sa-badge active" style="background:{{ a.current_stage.color }}22;color:{{ a.current_stage.color }};">
+              {{ a.current_stage.name }}
+            </span>
+          </td>
+          <td class="muted">{{ a.deleted_at|date:"d M Y H:i" }}</td>
+          <td style="text-align:end;">
+            <div class="sa-flex" style="justify-content:flex-end;">
+              <form method="post" action="{% url 'superadmin:restore_item' 'application' a.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-green sa-btn-sm"><i class="fas fa-undo"></i> {% trans "Restore" %}</button>
+              </form>
+              <form method="post" action="{% url 'superadmin:permanent_delete' 'application' a.pk %}" style="display:inline;"
+                    onsubmit="return confirm('{% trans "Permanently delete? This CANNOT be undone." %}')">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-danger sa-btn-sm"><i class="fas fa-times"></i> {% trans "Delete Forever" %}</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5"><div class="sa-empty"><div class="sa-empty-icon"><i class="fas fa-check-circle"></i></div><div class="sa-empty-title">{% trans "No deleted applications" %}</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

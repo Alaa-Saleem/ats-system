@@ -1,0 +1,111 @@
+{% extends "superadmin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Applications" %}{% endblock %}
+{% block page_title %}{% trans "Applications Management" %}{% endblock %}
+{% block page_subtitle %}{{ page_obj.paginator.count }} {% trans "applications total" %}{% endblock %}
+
+{% block content %}
+
+<div class="sa-panel">
+
+  <form method="get" class="sa-filters">
+    <i class="fas fa-search" style="color:var(--sa-text-muted);"></i>
+    <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Search candidate or job…' %}" class="sa-filter-input" style="min-width:220px;">
+
+    <select name="stage" class="sa-filter-select" onchange="this.form.submit()">
+      <option value="">{% trans "All Stages" %}</option>
+      {% for s in stages %}
+      <option value="{{ s.pk }}" {% if stage_filter == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="company" class="sa-filter-select" onchange="this.form.submit()">
+      <option value="">{% trans "All Companies" %}</option>
+      {% for c in companies %}
+      <option value="{{ c.pk }}" {% if company_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.company_name }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="sa-btn sa-btn-primary sa-btn-sm">{% trans "Filter" %}</button>
+    {% if q or stage_filter or company_filter %}
+    <a href="{% url 'superadmin:applications_list' %}" class="sa-btn sa-btn-ghost sa-btn-sm">{% trans "Clear" %}</a>
+    {% endif %}
+
+    <div class="sa-bulk-sel">
+      <span class="sa-fs-sm sa-text-muted"><span id="saBulkCount">0</span> {% trans "selected" %}</span>
+      <button type="button" onclick="saSubmitBulk('soft_delete')" class="sa-btn sa-btn-danger sa-btn-sm">
+        <i class="fas fa-trash"></i> {% trans "Delete Selected" %}
+      </button>
+    </div>
+  </form>
+
+  <form id="saBulkForm" action="{% url 'superadmin:bulk_action' %}" method="post" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="model" value="application">
+    <input type="hidden" name="action" value="">
+  </form>
+
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead>
+        <tr>
+          <th class="check-col"><input type="checkbox" class="sa-checkbox" onchange="saToggleAll(this)"></th>
+          <th>{% trans "Candidate" %}</th>
+          <th>{% trans "Job" %}</th>
+          <th>{% trans "Company" %}</th>
+          <th>{% trans "Stage" %}</th>
+          <th>{% trans "Applied" %}</th>
+          <th style="text-align:end;">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in page_obj %}
+        <tr>
+          <td><input type="checkbox" class="sa-checkbox sa-row-check" value="{{ app.pk }}"></td>
+          <td>
+            <a href="{% url 'superadmin:candidate_detail' app.candidate.pk %}" style="color:var(--sa-text);font-weight:600;text-decoration:none;">
+              {{ app.candidate.full_name }}
+            </a>
+            <div class="sa-fs-sm" style="color:var(--sa-text-muted);">{{ app.candidate.email }}</div>
+          </td>
+          <td>
+            <a href="{% url 'superadmin:job_detail' app.job.pk %}" style="color:var(--sa-text);text-decoration:none;">
+              {{ app.job.title }}
+            </a>
+          </td>
+          <td class="muted">{{ app.job.company.company_name }}</td>
+          <td>
+            <span class="sa-badge active" style="background:{{ app.current_stage.color }}22;color:{{ app.current_stage.color }};">
+              {{ app.current_stage.name }}
+            </span>
+          </td>
+          <td class="muted">{{ app.created_at|date:"d M Y" }}</td>
+          <td>
+            <div class="sa-flex" style="justify-content:flex-end;">
+              <a href="{% url 'superadmin:application_detail' app.pk %}" class="sa-btn sa-btn-ghost sa-btn-icon" title="{% trans 'View' %}"><i class="fas fa-eye"></i></a>
+              <form method="post" action="{% url 'superadmin:application_delete' app.pk %}" style="display:inline;" onsubmit="return confirm('{% trans "Move to Trash?" %}')">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-danger sa-btn-icon"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="sa-empty"><div class="sa-empty-icon"><i class="fas fa-inbox"></i></div><div class="sa-empty-title">{% trans "No applications found" %}</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="sa-pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&stage={{ stage_filter }}&company={{ company_filter }}" class="sa-page-link"><i class="fas fa-chevron-left"></i></a>{% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <a href="?page={{ num }}&q={{ q }}&stage={{ stage_filter }}&company={{ company_filter }}" class="sa-page-link {% if num == page_obj.number %}current{% endif %}">{{ num }}</a>
+    {% endfor %}
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&q={{ q }}&stage={{ stage_filter }}&company={{ company_filter }}" class="sa-page-link"><i class="fas fa-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

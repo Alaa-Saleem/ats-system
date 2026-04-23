@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "طلبات التقديم" %} - {{ job.title }}{% endblock %}
+
+{% block content %}
+
+<div class="page-header animate-in">
+    <div class="page-header-inner">
+        <div>
+            <div class="page-eyebrow">
+                <a href="{% url 'jobs:list' %}" class="text-decoration-none"><i class="fas fa-arrow-right"></i> {% trans "عودة للوظائف" %}</a>
+            </div>
+            <h1 class="page-title">{% trans "طلبات التقديم:" %} {{ job.title }}</h1>
+            <p class="page-subtitle">{% trans "إجمالي المتقدمين:" %} {{ total }}</p>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <a href="{% url 'pipeline:board' %}?job_id={{ job.id }}" class="btn btn-primary">
+                <i class="fas fa-columns"></i>
+                {% trans "عرض في التوظيف" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card animate-in" style="animation-delay: 0.1s">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light" style="background: var(--surface-color); color: var(--text-color);">
+                <tr>
+                    <th>{% trans "اسم المرشح" %}</th>
+                    <th>{% trans "تاريخ التقديم" %}</th>
+                    <th>{% trans "المرحلة الحالية" %}</th>
+                    <th>{% trans "المسمى الحالي" %}</th>
+                    <th>{% trans "الخبرة" %}</th>
+                    <th class="text-end">{% trans "إجراءات" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle me-3" style="width:40px;height:40px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:bold;">
+                                {{ app.candidate.full_name|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <div class="font-weight-600" style="color: var(--text-color);">{{ app.candidate.full_name }}</div>
+                                <div class="text-muted small">
+                                    <a href="mailto:{{ app.candidate.email }}">{{ app.candidate.email }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color: var(--text-color);">{{ app.created_at|date:"Y-m-d" }}</td>
+                    <td>
+                        <span class="badge" style="background-color: {{ app.current_stage.color|default:'#6c757d' }}; color: white;">
+                            {{ app.current_stage.name }}
+                        </span>
+                    </td>
+                    <td style="color: var(--text-color);">{{ app.candidate.current_title|default:"-" }}</td>
+                    <td style="color: var(--text-color);">{{ app.candidate.years_of_experience|default:"-" }} {% trans "سنوات" %}</td>
+                    <td class="text-end">
+                        {% if app.candidate.cv_file %}
+                        <a href="{{ app.candidate.cv_file.url }}" target="_blank" class="btn btn-sm btn-outline text-decoration-none" title='{% trans "تحميل السيرة الذاتية" %}'>
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="fas fa-folder-open fa-3x mb-3"></i>
+                            <h5>{% trans "لا يوجد طلبات تقديم حتى الآن" %}</h5>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

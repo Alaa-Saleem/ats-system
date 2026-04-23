@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Section</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ── CSS Variables & Reset ── */
+        :root {
+            --primary: #c79d6a;
+            --primary-light: #ddb88a;
+            --primary-dark: #a8814f;
+            --secondary: #343861;
+            --bg: #faf8f5;
+            --text: #1c1c2e;
+            --white: #ffffff;
+            --shadow-gold: 0 8px 32px rgba(199, 157, 106, 0.25);
+            --shadow-lg: 0 16px 48px rgba(52, 56, 97, 0.1);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── Scroll Animation ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Section ── */
+        .section {
+            padding: 120px 0;
+        }
+
+        /* ── Button ── */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--primary);
+            color: var(--white);
+            font-weight: 600;
+            padding: 16px 36px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 0.88rem;
+            letter-spacing: 0.03em;
+            box-shadow: var(--shadow-gold);
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* ── Investment Banner ── */
+        .invest-banner {
+            background: var(--secondary);
+            border-radius: var(--radius);
+            padding: 72px 64px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .invest-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: rgba(199, 157, 106, 0.06);
+        }
+
+        .invest-banner-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .invest-banner-text .eyebrow {
+            color: var(--primary-light);
+            font-size: 0.78rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .invest-banner-text h2 {
+            font-size: 2.4rem;
+            color: var(--white);
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+        }
+
+        .invest-banner-text p {
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.8;
+            margin-bottom: 32px;
+        }
+
+        /* ── Investment Cards ── */
+        .invest-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .invest-card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-sm);
+            padding: 28px;
+            transition: var(--transition);
+        }
+
+        .invest-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(199, 157, 106, 0.3);
+        }
+
+        .invest-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(199, 157, 106, 0.15);
+            color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .invest-card-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .invest-card h3 {
+            font-size: 0.95rem;
+            color: var(--white);
+            margin-bottom: 6px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .invest-card p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .invest-banner {
+                grid-template-columns: 1fr;
+                padding: 48px 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .invest-banner {
+                padding: 40px 28px;
+            }
+
+            .invest-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .section {
+                padding: 80px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!--          INVESTMENT SECTION            -->
+    <!-- ═══════════════════════════════════════ -->
+    <section class="section" id="investment">
+        <div class="container">
+            <div class="invest-banner reveal">
+                <div class="invest-banner-text">
+                    <span class="eyebrow">Invest Smart</span>
+                    <h2>A Sound Investment for Your Future</h2>
+                    <p>Anwer Alosaimi Compound is more than a home. With a prime location and growing market demand, it
+                        represents an exceptional investment opportunity with strong returns.</p>
+                    <a href="#contact" class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                        Learn About Investment
+                    </a>
+                </div>
+                <div class="invest-cards">
+                    <div class="invest-card">
+                        <div class="invest-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                <polyline points="17 6 23 6 23 12"></polyline>
+                            </svg>
+                        </div>
+                        <h3>Growing Market Demand</h3>
+                        <p>Increasing demand for premium residential properties in the region.</p>
+                    </div>
+                    <div class="invest-card">
+                        <div class="invest-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                        </div>
+                        <h3>High ROI Potential</h3>
+                        <p>Competitive returns on investment in a thriving location.</p>
+                    </div>
+                    <div class="invest-card">
+                        <div class="invest-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                        </div>
+                        <h3>Long-term Value</h3>
+                        <p>Properties in prime locations appreciate steadily over time.</p>
+                    </div>
+                    <div class="invest-card">
+                        <div class="invest-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                        </div>
+                        <h3>Secure Investment</h3>
+                        <p>Backed by Dana Al Omran's track record of excellence.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // ── Investment Section JS ── Scroll Reveal Animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+
+</body>
+
+</html>

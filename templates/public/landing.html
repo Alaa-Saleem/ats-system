@@ -1,0 +1,501 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "منصة التوظيف - الوظائف المتاحة" %}</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --brand-blue: #0d6efd;
+            --brand-blue-soft: rgba(13, 110, 253, 0.08);
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border-light: #e2e8f0;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* ── Header Navbar ── */
+        .navbar-custom {
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow-sm);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .navbar-brand { font-weight: 800; color: var(--brand-blue); font-size: 1.5rem; }
+
+        /* ── Hero Section ── */
+        .hero {
+            background: linear-gradient(135deg, var(--brand-blue), #0ea5e9);
+            color: white;
+            padding: 4rem 0 5rem;
+            text-align: center;
+        }
+        .hero h1 { font-weight: 800; margin-bottom: 1rem; font-size: 2.5rem; }
+
+        /* ── Filters Section ── */
+        .filters-wrapper {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            margin-top: -3rem;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .filter-input {
+            border: 1px solid var(--border-light);
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            width: 100%;
+            outline: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .filter-input:focus { border-color: var(--brand-blue); box-shadow: 0 0 0 3px var(--brand-blue-soft); }
+
+        /* ── Grid Layout ── */
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* ── Job Cards ── */
+        .job-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .job-card:hover:not(.disabled-card) {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: #cbd5e1;
+        }
+
+        .job-card.disabled-card {
+            opacity: 0.6;
+            filter: grayscale(1);
+            background: #f8fafc;
+        }
+
+        /* Hover quick preview (tooltips / minor expand) could be done via CSS */
+        .quick-preview {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        .job-card:hover .quick-preview { max-height: 80px; }
+
+        /* Header logic */
+        .company-logo-placeholder {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            background: var(--brand-blue-soft);
+            color: var(--brand-blue);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; font-weight: 700;
+        }
+        
+        .job-title { font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin: 0 0 0.2rem; }
+        .company-name { font-size: 0.9rem; color: var(--text-muted); display: block; margin-bottom: 1rem; }
+
+        /* Tags */
+        .traits { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+        .trait {
+            font-size: 0.8rem; font-weight: 600;
+            padding: 0.3rem 0.8rem; border-radius: 50px;
+            background: var(--bg-color); color: var(--text-muted);
+        }
+        .trait.salary { background: rgba(16, 185, 129, 0.1); color: #059669; }
+
+        /* Badges */
+        .badges-container { position: absolute; top: 1rem; left: 1rem; display: flex; gap: 0.5rem; } /* left because RTL */
+        .status-badge {
+            font-size: 0.75rem; font-weight: 700;
+            padding: 0.3rem 0.6rem; border-radius: 6px;
+        }
+        .badge-new { background: #fee2e2; color: #dc2626; }
+        .badge-urgent { background: #fef9c3; color: #ca8a04; }
+        .badge-closed { background: #e2e8f0; color: #475569; }
+
+        /* Footer / Actions */
+        .card-footer-flex {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .deadline-text { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+        
+        .card-actions { display: flex; gap: 0.5rem; }
+        .btn-apply { font-weight: 600; border-radius: 8px; padding: 0.5rem 1.2rem; transition: 0.2s;}
+
+        /* ── Skeleton Loader ── */
+        .skeleton-block {
+            display: none;
+        }
+        body.loading .jobs-grid { display: none; }
+        body.loading .skeleton-block { display: grid; }
+        
+        .skeleton-card {
+            background: var(--card-bg); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--border-light);
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 4px;
+        }
+        @keyframes skeleton-loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ── Empty State ── */
+        .empty-state {
+            text-align: center; padding: 4rem 2rem;
+            background: var(--card-bg); border-radius: 16px;
+            box-shadow: var(--shadow-sm); grid-column: 1 / -1;
+        }
+        .empty-icon { font-size: 4rem; color: #cbd5e1; margin-bottom: 1rem; }
+    </style>
+</head>
+<body onload="stopLoading()">
+
+    <!-- Navbar -->
+    <nav class="navbar-custom">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a href="/" class="navbar-brand text-decoration-none">منصة التوظيف</a>
+            <div class="d-flex gap-2">
+                <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary fw-bold">تسجيل الدخول</a>
+                <a href="{% url 'accounts:register_candidate' %}" class="btn btn-primary fw-bold d-none d-md-block">تسجيل باحث عن عمل</a>
+                <a href="{% url 'accounts:register_company' %}" class="btn btn-dark fw-bold d-none d-md-block">تسجيل شركة</a>
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <h1>اكتشف فرصتك القادمة</h1>
+            <p class="lead opacity-75">نربط الكفاءات المتميزة بأفضل الشركات. ابحث، قدم، وانطلق.</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container pb-5">
+        
+        <!-- Filters Form -->
+        <form class="filters-wrapper row g-3 align-items-center" method="get" onsubmit="startLoading()">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control border-start-0 ps-0 filter-input" placeholder="المسمى الوظيفي أو الشركة" value="{{ q }}">
+                </div>
+            </div>
+            
+            <div class="col-md-2">
+                <select name="location" class="filter-input" onchange="this.form.submit()">
+                    <option value="">🗺️ كل المناطق</option>
+                    {% for loc in locations %}
+                    <option value="{{ loc }}" {% if location_filter == loc %}selected{% endif %}>{{ loc }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <select name="job_type" class="filter-input" onchange="this.form.submit()">
+                    <option value="">💼 نوع الوظيفة</option>
+                    {% for jt in job_types_list %}
+                    <option value="{{ jt }}" {% if job_type_filter == jt %}selected{% endif %}>{{ jt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <select name="sort" class="filter-input" onchange="this.form.submit()">
+                    <option value="newest" {% if sort_filter == 'newest' %}selected{% endif %}>ترتيب: الأحدث أولاً</option>
+                    <option value="salary_high" {% if sort_filter == 'salary_high' %}selected{% endif %}>ترتيب: الأعلى راتباً</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary btn-apply">البحث</button>
+            </div>
+        </form>
+
+        <!-- Skeleton Loader (Shown during load) -->
+        <div class="skeleton-block jobs-grid">
+            {% for i in "123456" %}
+            <div class="skeleton-card">
+                <div class="d-flex gap-3 mb-3">
+                    <div class="skeleton" style="width: 48px; height: 48px; border-radius: 12px;"></div>
+                    <div class="w-100">
+                        <div class="skeleton mb-2" style="height: 20px; width: 60%;"></div>
+                        <div class="skeleton" style="height: 15px; width: 40%;"></div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mb-4">
+                    <div class="skeleton" style="height: 24px; width: 80px; border-radius: 50px;"></div>
+                    <div class="skeleton" style="height: 24px; width: 100px; border-radius: 50px;"></div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <div class="skeleton" style="height: 15px; width: 30%;"></div>
+                    <div class="skeleton" style="height: 35px; width: 100px; border-radius: 8px;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Actual Grid Mode -->
+        <div class="jobs-grid" id="mainGrid">
+            {% for job in jobs %}
+            {% if job.status == 'closed' or job.application_deadline and job.application_deadline < today_date %}
+            <div class="job-card disabled-card">
+            {% else %}
+            <div class="job-card">
+            {% endif %}
+                <!-- Badges -->
+                <div class="badges-container">
+                    {% if job.status == 'closed' or job.application_deadline and job.application_deadline < today_date %}
+                        <span class="status-badge badge-closed"><i class="fas fa-lock"></i> مغلقة</span>
+                    {% else %}
+                        {% if job.created_at >= new_date %}
+                            <span class="status-badge badge-new">🔥 جديد</span>
+                        {% endif %}
+                        {% if job.application_deadline and job.application_deadline <= urgent_date and job.application_deadline >= today_date %}
+                            <span class="status-badge badge-urgent">⏳ عاجل</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="d-flex gap-3">
+                    <div class="company-logo-placeholder">
+                        {{ job.company.company_name|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <h3 class="job-title">{{ job.title }}</h3>
+                        <span class="company-name"><i class="fas fa-building me-1"></i> {{ job.company.company_name }}</span>
+                    </div>
+                </div>
+
+                <div class="traits mt-2">
+                    {% if job.location %}
+                    <span class="trait"><i class="fas fa-location-dot"></i> {{ job.location }}</span>
+                    {% endif %}
+                    {% if job.job_type %}
+                    <span class="trait"><i class="fas fa-briefcase"></i> {{ job.get_job_type_display|default:job.job_type }}</span>
+                    {% endif %}
+                    <span class="trait salary">
+                        <i class="fas fa-money-bill-wave"></i> 
+                        {% if job.salary %}${{ job.salary }}{% else %}قابل للتفاوض{% endif %}
+                    </span>
+                </div>
+
+                <div class="quick-preview">
+                    {{ job.description|striptags|truncatewords:15 }}
+                </div>
+
+                <div class="card-footer-flex mt-3">
+                    <div class="deadline-text">
+                        {% if job.application_deadline %}
+                            {% if job.status == 'closed' %}
+                                انتهى التقديم
+                            {% else %}
+                                🗓️ يغلق في: {{ job.application_deadline|date:"Y/m/d" }}
+                            {% endif %}
+                        {% else %}
+                            <i class="fas fa-clock"></i> مفتوح باستمرار
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-actions">
+                        {% if job.status == 'closed' or job.application_deadline and job.application_deadline < today_date %}
+                        <button class="btn btn-secondary btn-apply disabled">مغلق</button>
+                        {% else %}
+                        <button onclick="promptApply('{% url 'jobs:public_apply' job.id %}')" class="btn btn-primary btn-apply">
+                            تقديم <i class="fas fa-paper-plane ms-1"></i>
+                        </button>
+                        {% endif %}
+                        <button onclick="showJobDetails(this)" class="btn btn-outline-secondary btn-apply">
+                            التفاصيل <i class="fas fa-eye ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hidden data for modal -->
+                <div class="d-none js-job-title">{{ job.title }}</div>
+                <div class="d-none js-job-company">{{ job.company.company_name }}</div>
+                <div class="d-none js-job-location">{{ job.location|default:"غير محدد" }}</div>
+                <div class="d-none js-job-type">{{ job.get_job_type_display|default:job.job_type }}</div>
+                <div class="d-none js-job-salary">{% if job.salary %}${{ job.salary }}{% else %}قابل للتفاوض{% endif %}</div>
+                <div class="d-none js-job-desc">{{ job.description|linebreaksbr }}</div>
+                <div class="d-none js-job-skills">{{ job.required_skills|linebreaksbr }}</div>
+            </div>
+            {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-search empty-icon"></i>
+                    <h3 class="fw-bold">لا توجد وظائف حالياً</h3>
+                    <p class="text-muted">لم نعثر على وظائف تطابق بحثك. جرب تغيير الفلاتر للحصول على نتائج أفضل.</p>
+                    <a href="{% url 'public:landing' %}" class="btn btn-outline-primary mt-3">إعادة ضبط البحث</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+
+    <!-- Application Prompt Modal -->
+    <div class="modal fade" id="applyPromptModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden;">
+                <div class="modal-header bg-light border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-4 pt-0">
+                    <div class="mb-4">
+                        <i class="fas fa-id-card text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="fw-bold">كيف تفضل التقديم؟</h4>
+                    <p class="text-muted mb-4">إنشاء حساب يتيح لك حفظ بياناتك وسيرتك الذاتية للتقديم السريع مستقبلاً، ويمكنك أيضاً التقديم السريع كضيف.</p>
+                    
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'accounts:register_candidate' %}" class="btn btn-primary btn-lg" style="border-radius: 12px; font-weight: bold;">
+                            <i class="fas fa-user-plus ms-1"></i> إنشاء حساب الآن
+                        </a>
+                        <a href="#" id="guestApplyLink" class="btn btn-light btn-lg" style="border-radius: 12px; font-weight: bold; border: 1px solid #e2e8f0;">
+                            <i class="fas fa-bolt ms-1"></i> التقديم السريع كضيف
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Job Details Modal -->
+    <div class="modal fade" id="jobDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-header bg-light pb-3">
+                    <div>
+                        <h4 class="modal-title fw-bold mb-1" id="modalJobTitle">...</h4>
+                        <span class="text-muted" id="modalJobCompany"><i class="fas fa-building me-1"></i> ...</span>
+                    </div>
+                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <span class="trait"><i class="fas fa-location-dot"></i> <span id="modalJobLocation">...</span></span>
+                        <span class="trait"><i class="fas fa-briefcase"></i> <span id="modalJobType">...</span></span>
+                        <span class="trait salary"><i class="fas fa-money-bill-wave"></i> <span id="modalJobSalary">...</span></span>
+                    </div>
+
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">وصف الوظيفة</h5>
+                    <div id="modalJobDesc" class="mb-4 text-muted lh-lg"></div>
+
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">المهارات والخبرات المطلوبة</h5>
+                    <div id="modalJobSkills" class="text-muted lh-lg"></div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                    <!-- Apply button goes here if needed, but not required since user can apply from the card directly -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Start skeleton loading on submit
+        function startLoading() {
+            document.body.classList.add('loading');
+        }
+        
+        // Stop skeleton loading on completely fired DOM
+        function stopLoading() {
+            document.body.classList.remove('loading');
+        }
+        
+        // Initial state logic (if browser cache delays it)
+        document.body.classList.add('loading');
+        // Custom Tag for variables is not available in vanilla django templates easily,
+        // so we relied purely on logic in the template. The code was faux 
+        // and shouldn't be executed, I will refine this in the actual DOM rendering below:
+        
+        // Prompt Modal Logic
+        function promptApply(url) {
+            document.getElementById('guestApplyLink').href = url;
+            new bootstrap.Modal(document.getElementById('applyPromptModal')).show();
+        }
+
+        // View Details Modal Logic
+        function showJobDetails(btnElement) {
+            // Find the parent job card
+            const card = btnElement.closest('.job-card');
+            
+            // Extract hidden info
+            const title = card.querySelector('.js-job-title').innerHTML;
+            const company = card.querySelector('.js-job-company').innerHTML;
+            const location = card.querySelector('.js-job-location').innerHTML;
+            const type = card.querySelector('.js-job-type').innerHTML;
+            const salary = card.querySelector('.js-job-salary').innerHTML;
+            const desc = card.querySelector('.js-job-desc').innerHTML;
+            const skills = card.querySelector('.js-job-skills').innerHTML;
+
+            // Populate Modal
+            document.getElementById('modalJobTitle').innerHTML = title;
+            document.getElementById('modalJobCompany').innerHTML = '<i class="fas fa-building me-1"></i> ' + company;
+            document.getElementById('modalJobLocation').innerHTML = location;
+            document.getElementById('modalJobType').innerHTML = type;
+            document.getElementById('modalJobSalary').innerHTML = salary;
+            
+            document.getElementById('modalJobDesc').innerHTML = desc || 'لا يوجد وصف متاح.';
+            document.getElementById('modalJobSkills').innerHTML = skills || 'لا يوجد مهارات مسجلة.';
+
+            // Show Modal
+            new bootstrap.Modal(document.getElementById('jobDetailsModal')).show();
+        }
+    </script>
+</body>
+</html>

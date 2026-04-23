@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Section</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ── CSS Variables & Reset ── */
+        :root {
+            --primary: #c79d6a;
+            --primary-light: #ddb88a;
+            --primary-dark: #a8814f;
+            --secondary: #343861;
+            --bg: #faf8f5;
+            --white: #ffffff;
+            --shadow-gold: 0 8px 32px rgba(199, 157, 106, 0.25);
+            --radius: 16px;
+            --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.3);
+        }
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg,
+                    rgba(28, 28, 46, 0.4) 0%,
+                    rgba(52, 56, 97, 0.6) 50%,
+                    rgba(28, 28, 46, 0.85) 100%);
+        }
+
+        .hero-particles {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .hero-particles span {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float-particle 8s infinite ease-in-out;
+        }
+
+        .hero-particles span:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .hero-particles span:nth-child(2) {
+            top: 60%;
+            left: 80%;
+            animation-delay: 2s;
+        }
+
+        .hero-particles span:nth-child(3) {
+            top: 40%;
+            left: 50%;
+            animation-delay: 4s;
+        }
+
+        .hero-particles span:nth-child(4) {
+            top: 80%;
+            left: 30%;
+            animation-delay: 1s;
+        }
+
+        .hero-particles span:nth-child(5) {
+            top: 15%;
+            left: 70%;
+            animation-delay: 3s;
+        }
+
+        .hero-particles span:nth-child(6) {
+            top: 70%;
+            left: 15%;
+            animation-delay: 5s;
+        }
+
+        @keyframes float-particle {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.3;
+            }
+
+            50% {
+                transform: translateY(-30px) scale(1.5);
+                opacity: 0.6;
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 780px;
+            text-align: center;
+            padding: 100px 24px 60px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(199, 157, 106, 0.15);
+            border: 1px solid rgba(199, 157, 106, 0.3);
+            padding: 8px 20px;
+            border-radius: 50px;
+            color: var(--primary-light);
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 32px;
+            backdrop-filter: blur(8px);
+        }
+
+        .hero-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            color: var(--white);
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+            color: var(--primary-light);
+            position: relative;
+        }
+
+        .hero h1 em::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+            opacity: 0.5;
+        }
+
+        .hero .subtitle {
+            font-size: 1.15rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 300;
+            margin-bottom: 48px;
+            line-height: 1.8;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--primary);
+            color: var(--white);
+            font-weight: 600;
+            padding: 16px 36px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 0.88rem;
+            letter-spacing: 0.03em;
+            box-shadow: var(--shadow-gold);
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            color: var(--white);
+            font-weight: 500;
+            padding: 16px 36px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 0.88rem;
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            transition: var(--transition);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(199, 157, 106, 0.05);
+        }
+
+        .btn-outline svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 64px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat .num {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .hero-stat .label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-top: 4px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.4rem;
+            }
+
+            .hero-stats {
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+
+            .hero-stat .num {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero-badge {
+                font-size: 0.65rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!--              HERO SECTION              -->
+    <!-- ═══════════════════════════════════════ -->
+    <section class="hero" id="hero">
+        <img src="https://d-alomran.com/wp-content/uploads/2026/02/WhatsApp-Image-2026-02-17-at-08.34.48.jpeg"
+            alt="Anwer Alosaimi Compound aerial view" class="hero-bg">
+        <div class="hero-overlay"></div>
+        <div class="hero-particles">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                    </polygon>
+                </svg>
+                A Premium Residential Project
+            </div>
+            <h1>Experience <em>Luxury</em> Living at Its Finest</h1>
+            <p class="subtitle">
+                Welcome to Anwer Alosaimi Compound by Dana Al Omran Al Mumayaz.
+                Where modern architecture meets timeless elegance.
+            </p>
+            <div class="hero-actions">
+                <a href="#contact" class="btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Schedule a Visit
+                </a>
+                <a href="#gallery" class="btn-outline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    View Gallery
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="num">150+</div>
+                    <div class="label">Luxury Units</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="num">12</div>
+                    <div class="label">Amenities</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="num">24/7</div>
+                    <div class="label">Security</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</body>
+
+</html>

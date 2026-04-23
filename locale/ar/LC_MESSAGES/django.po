@@ -1,0 +1,661 @@
+# Arabic translations
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ar\n"
+
+
+msgid "القائمة الرئيسية"
+msgstr "القائمة الرئيسية"
+
+msgid "الرئيسية"
+msgstr "الرئيسية"
+
+msgid "نظام التوظيف"
+msgstr "نظام التوظيف"
+
+msgid "المرشحون"
+msgstr "المرشحون"
+
+msgid "الوظائف"
+msgstr "الوظائف"
+
+msgid "العملاء"
+msgstr "العملاء"
+
+msgid "الإعدادات"
+msgstr "الإعدادات"
+
+msgid "إدارة الفريق"
+msgstr "إدارة الفريق"
+
+msgid "تسجيل الخروج"
+msgstr "تسجيل الخروج"
+
+msgid "تغيير المظهر"
+msgstr "تغيير المظهر"
+
+msgid "نظام إدارة التوظيف"
+msgstr "نظام إدارة التوظيف"
+
+msgid "ملفي الشخصي"
+msgstr "ملفي الشخصي"
+
+msgid "تسجيل الدخول"
+msgstr "تسجيل الدخول"
+
+msgid "البريد الإلكتروني"
+msgstr "البريد الإلكتروني"
+
+msgid "كلمة المرور"
+msgstr "كلمة المرور"
+
+msgid "تذكرني"
+msgstr "تذكرني"
+
+msgid "سجل كشركة"
+msgstr "سجل كشركة"
+
+msgid "سجل كمرشح"
+msgstr "سجل كمرشح"
+
+msgid "ليس لديك حساب؟"
+msgstr "ليس لديك حساب؟"
+
+msgid "لديك حساب؟"
+msgstr "لديك حساب؟"
+
+msgid "الوظائف المتاحة"
+msgstr "الوظائف المتاحة"
+
+msgid "تصفح الوظائف"
+msgstr "تصفح الوظائف"
+
+msgid "أضف وظيفة"
+msgstr "أضف وظيفة"
+
+msgid "تعديل الوظيفة"
+msgstr "تعديل الوظيفة"
+
+msgid "حالة الوظيفة"
+msgstr "حالة الوظيفة"
+
+msgid "مفتوح"
+msgstr "مفتوح"
+
+msgid "مغلق"
+msgstr "مغلق"
+
+msgid "المتقدمون"
+msgstr "المتقدمون"
+
+msgid "إضافة مرشح"
+msgstr "إضافة مرشح"
+
+msgid "لوحة التحكم"
+msgstr "لوحة التحكم"
+
+msgid "إجمالي الوظائف"
+msgstr "إجمالي الوظائف"
+
+msgid "إجمالي المتقدمين"
+msgstr "إجمالي المتقدمين"
+
+msgid "التقديمات"
+msgstr "التقديمات"
+
+msgid "طلباتي"
+msgstr "طلباتي"
+
+msgid "مستخدم"
+msgstr "مستخدم"
+
+msgid "حفظ"
+msgstr "حفظ"
+
+msgid "إلغاء"
+msgstr "إلغاء"
+
+msgid "حذف"
+msgstr "حذف"
+
+msgid "تعديل"
+msgstr "تعديل"
+
+msgid "البحث"
+msgstr "البحث"
+
+msgid "تصفية"
+msgstr "تصفية"
+
+msgid "الكل"
+msgstr "الكل"
+
+msgid "لا توجد بيانات"
+msgstr "لا توجد بيانات"
+
+msgid "نعم"
+msgstr "نعم"
+
+msgid "لا"
+msgstr "لا"
+
+msgid "طلبات التقديم"
+msgstr "طلبات التقديم"
+
+msgid "طلبات التقديم:"
+msgstr "طلبات التقديم:"
+
+msgid "عودة للوظائف"
+msgstr "عودة للوظائف"
+
+msgid "إجمالي المتقدمين:"
+msgstr "إجمالي المتقدمين:"
+
+msgid "عرض في التوظيف"
+msgstr "عرض في التوظيف"
+
+msgid "اسم المرشح"
+msgstr "اسم المرشح"
+
+msgid "تاريخ التقديم"
+msgstr "تاريخ التقديم"
+
+msgid "المرحلة الحالية"
+msgstr "المرحلة الحالية"
+
+msgid "المسمى الحالي"
+msgstr "المسمى الحالي"
+
+msgid "الخبرة"
+msgstr "الخبرة"
+
+msgid "إجراءات"
+msgstr "إجراءات"
+
+msgid "سنوات"
+msgstr "سنوات"
+
+msgid "تحميل السيرة الذاتية"
+msgstr "تحميل السيرة الذاتية"
+
+msgid "لا يوجد طلبات تقديم حتى الآن"
+msgstr "لا يوجد طلبات تقديم حتى الآن"
+
+msgid "إدارة المرشحين"
+msgstr "إدارة المرشحين"
+
+msgid "المرشحين"
+msgstr "المرشحين"
+
+msgid "استعراض وإدارة قاعدة بيانات المرشحين المحتملين"
+msgstr "استعراض وإدارة قاعدة بيانات المرشحين المحتملين"
+
+msgid "فلترة حسب الوظيفة"
+msgstr "فلترة حسب الوظيفة"
+
+msgid "كل الوظائف"
+msgstr "كل الوظائف"
+
+msgid "تطبيق"
+msgstr "تطبيق"
+
+msgid "إعادة تعيين"
+msgstr "إعادة تعيين"
+
+msgid "المرشح"
+msgstr "المرشح"
+
+msgid "المسمى الوظيفي"
+msgstr "المسمى الوظيفي"
+
+msgid "الإجراءات"
+msgstr "الإجراءات"
+
+msgid "عرض التفاصيل"
+msgstr "عرض التفاصيل"
+
+msgid "عرض"
+msgstr "عرض"
+
+msgid "لا يوجد مرشحين"
+msgstr "لا يوجد مرشحين"
+
+msgid "لم يتم إضافة أي مرشحين بعد. ابدأ بإضافة مرشحك الأول."
+msgstr "لم يتم إضافة أي مرشحين بعد. ابدأ بإضافة مرشحك الأول."
+
+msgid "إضافة مرشح جديد"
+msgstr "إضافة مرشح جديد"
+
+msgid "العودة للوراء"
+msgstr "العودة للوراء"
+
+msgid "بدون عمل"
+msgstr "بدون عمل"
+
+msgid "العودة للقائمة"
+msgstr "العودة للقائمة"
+
+msgid "بيانات المرشح"
+msgstr "بيانات المرشح"
+
+msgid "بيانات عامة"
+msgstr "بيانات عامة"
+
+msgid "الاسم الكامل"
+msgstr "الاسم الكامل"
+
+msgid "رقم الهاتف"
+msgstr "رقم الهاتف"
+
+msgid "المسمى الوظيفي الحالي"
+msgstr "المسمى الوظيفي الحالي"
+
+msgid "سنوات الخبرة"
+msgstr "سنوات الخبرة"
+
+msgid "الموقع / المدينة"
+msgstr "الموقع / المدينة"
+
+msgid "السيرة الذاتية (CV)"
+msgstr "السيرة الذاتية (CV)"
+
+msgid "تحميل الملف"
+msgstr "تحميل الملف"
+
+msgid "ملاحظات إضافية"
+msgstr "ملاحظات إضافية"
+
+msgid "الطلب الحالي"
+msgstr "الطلب الحالي"
+
+msgid "الوظيفة المتقدم لها"
+msgstr "الوظيفة المتقدم لها"
+
+msgid "مصدر التقديم"
+msgstr "مصدر التقديم"
+
+msgid "إجابات النموذج الإضافية"
+msgstr "إجابات النموذج الإضافية"
+
+msgid "عرض الملف"
+msgstr "عرض الملف"
+
+msgid "لا توجد حقول إضافية ضمن نموذج هذا الطلب."
+msgstr "لا توجد حقول إضافية ضمن نموذج هذا الطلب."
+
+msgid "لا يوجد طلب تقديم مرتبط بهذا المرشح حتى الآن."
+msgstr "لا يوجد طلب تقديم مرتبط بهذا المرشح حتى الآن."
+
+msgid "Team Management"
+msgstr "Team Management"
+
+msgid "إعدادات الفريق"
+msgstr "إعدادات الفريق"
+
+msgid "أضف وأدر أعضاء فريق شركتك وصلاحياتهم"
+msgstr "أضف وأدر أعضاء فريق شركتك وصلاحياتهم"
+
+msgid "إضافة عضو"
+msgstr "إضافة عضو"
+
+msgid "إضافة عضو جديد"
+msgstr "إضافة عضو جديد"
+
+msgid "أعضاء الفريق"
+msgstr "أعضاء الفريق"
+
+msgid "المستخدم"
+msgstr "المستخدم"
+
+msgid "الدور"
+msgstr "الدور"
+
+msgid "لا يوجد أعضاء فريق"
+msgstr "لا يوجد أعضاء فريق"
+
+msgid "ابدأ بإضافة أعضاء لفريقك من النموذج المجاور."
+msgstr "ابدأ بإضافة أعضاء لفريقك من النموذج المجاور."
+
+msgid "هل أنت متأكد من حذف هذا العضو؟"
+msgstr "هل أنت متأكد من حذف هذا العضو؟"
+
+msgid "اختر دوراً..."
+msgstr "اختر دوراً..."
+
+msgid "محرر"
+msgstr "محرر"
+
+msgid "مقيّم"
+msgstr "مقيّم"
+
+msgid "صاحب قرار"
+msgstr "صاحب قرار"
+
+msgid "دور الفريق"
+msgstr "دور الفريق"
+
+msgid "خط التوظيف"
+msgstr "خط التوظيف"
+
+msgid "تتبع المرشحين"
+msgstr "تتبع المرشحين"
+
+msgid "بحث بالاسم / الإيميل..."
+msgstr "بحث بالاسم / الإيميل..."
+
+msgid "ربط مرشح"
+msgstr "ربط مرشح"
+
+msgid "الأنشطة الأخيرة"
+msgstr "الأنشطة الأخيرة"
+
+msgid "الأنشطة"
+msgstr "الأنشطة"
+
+msgid "الإجمالي"
+msgstr "الإجمالي"
+
+msgid "لا يوجد مرشحون"
+msgstr "لا يوجد مرشحون"
+
+msgid "لا توجد نشاطات حتى الآن."
+msgstr "لا توجد نشاطات حتى الآن."
+
+msgid "لا توجد أنشطة بعد"
+msgstr "لا توجد أنشطة بعد"
+
+msgid "تنقل"
+msgstr "تنقل"
+
+msgid "أضف صورة شخصية"
+msgstr "أضف صورة شخصية"
+
+msgid "أضف اسمك الكامل"
+msgstr "أضف اسمك الكامل"
+
+msgid "أضف رقم هاتفك"
+msgstr "أضف رقم هاتفك"
+
+msgid "أضف موقعك الجغرافي"
+msgstr "أضف موقعك الجغرافي"
+
+msgid "أضف نبذة عنك"
+msgstr "أضف نبذة عنك"
+
+msgid "أضف سيرتك الذاتية (CV)"
+msgstr "أضف سيرتك الذاتية (CV)"
+
+msgid "أضف مهاراتك"
+msgstr "أضف مهاراتك"
+
+msgid "أضف مسمّاك الوظيفي"
+msgstr "أضف مسمّاك الوظيفي"
+
+msgid "تقييم"
+msgstr "تقييم"
+
+msgid "تعليق"
+msgstr "تعليق"
+
+msgid "دعوة مقابلة"
+msgstr "دعوة مقابلة"
+
+msgid "إرسال إيميل"
+msgstr "إرسال إيميل"
+
+msgid "إضافة للمختارين"
+msgstr "إضافة للمختارين"
+
+msgid "السيرة الذاتية"
+msgstr "السيرة الذاتية"
+
+msgid "نقل إلى:"
+msgstr "نقل إلى:"
+
+msgid "اختر مرحلة..."
+msgstr "اختر مرحلة..."
+
+msgid "معلومات"
+msgstr "معلومات"
+
+msgid "التقييم"
+msgstr "التقييم"
+
+msgid "التعليقات"
+msgstr "التعليقات"
+
+msgid "ملاحظات"
+msgstr "ملاحظات"
+
+msgid "متوسط تقييم الفريق:"
+msgstr "متوسط تقييم الفريق:"
+
+msgid "تقييمك:"
+msgstr "تقييمك:"
+
+msgid "لم تقيّم بعد"
+msgstr "لم تقيّم بعد"
+
+msgid "اكتب تعليقك هنا..."
+msgstr "اكتب تعليقك هنا..."
+
+msgid "إرسال"
+msgstr "إرسال"
+
+msgid "إرسال بريد إلكتروني"
+msgstr "إرسال بريد إلكتروني"
+
+msgid "عرض وظيفي"
+msgstr "عرض وظيفي"
+
+msgid "إشعار رفض"
+msgstr "إشعار رفض"
+
+msgid "متابعة"
+msgstr "متابعة"
+
+msgid "إلى"
+msgstr "إلى"
+
+msgid "الموضوع"
+msgstr "الموضوع"
+
+msgid "موضوع الرسالة"
+msgstr "موضوع الرسالة"
+
+msgid "نص الرسالة"
+msgstr "نص الرسالة"
+
+msgid "اكتب نص الرسالة هنا..."
+msgstr "اكتب نص الرسالة هنا..."
+
+msgid "مختار"
+msgstr "مختار"
+
+msgid "تمرير"
+msgstr "تمرير"
+
+msgid "التالي"
+msgstr "التالي"
+
+msgid "السابق"
+msgstr "السابق"
+
+msgid "My Profile"
+msgstr "ملفي الشخصي"
+
+msgid "Profile Completion"
+msgstr "اكتمال الملف"
+
+msgid "Personal Info"
+msgstr "بيانات شخصية"
+
+msgid "Professional"
+msgstr "بيانات مهنية"
+
+msgid "Documents"
+msgstr "مستندات"
+
+msgid "Company Info"
+msgstr "بيانات الشركة"
+
+msgid "My Role"
+msgstr "دوري"
+
+msgid "Account Settings"
+msgstr "إعدادات الحساب"
+
+msgid "Shareable Link"
+msgstr "رابط المشاركة"
+
+msgid "Copy"
+msgstr "نسخ"
+
+msgid "Copied!"
+msgstr "تم النسخ!"
+
+msgid "Personal Information"
+msgstr "البيانات الشخصية"
+
+msgid "First Name"
+msgstr "الاسم الأول"
+
+msgid "Last Name"
+msgstr "اسم العائلة"
+
+msgid "Phone"
+msgstr "رقم الهاتف"
+
+msgid "Location"
+msgstr "الموقع"
+
+msgid "Bio — About Me"
+msgstr "نبذة عني"
+
+msgid "Save Changes"
+msgstr "حفظ التغييرات"
+
+msgid "Professional Information"
+msgstr "البيانات المهنية"
+
+msgid "Current Job Title"
+msgstr "المسمى الوظيفي الحالي"
+
+msgid "Years of Experience"
+msgstr "سنوات الخبرة"
+
+msgid "Skills"
+msgstr "المهارات"
+
+msgid "(comma-separated)"
+msgstr "(مفصولة بفاصلة)"
+
+msgid "About Me / Bio"
+msgstr "نبذة عني"
+
+msgid "Availability"
+msgstr "التوفر"
+
+msgid "Immediately / 1 month…"
+msgstr "فوراً / شهر..."
+
+msgid "Expected Salary"
+msgstr "الراتب المتوقع"
+
+msgid "e.g. $70K/year"
+msgstr "مثال: 70 ألف دولار/سنوياً"
+
+msgid "Links & Profiles"
+msgstr "الروابط والحسابات"
+
+msgid "Current CV"
+msgstr "السيرة الذاتية الحالية"
+
+msgid "View CV"
+msgstr "عرض السيرة الذاتية"
+
+msgid "Replace CV"
+msgstr "استبدال السيرة الذاتية"
+
+msgid "Upload CV"
+msgstr "رفع السيرة الذاتية"
+
+msgid "max 5MB"
+msgstr "بحد أقصى 5 ميجابايت"
+
+msgid "Your Links"
+msgstr "روابطك"
+
+msgid "Company Information"
+msgstr "بيانات الشركة"
+
+msgid "Company Logo"
+msgstr "شعار الشركة"
+
+msgid "Upload Logo"
+msgstr "رفع الشعار"
+
+msgid "Company Name"
+msgstr "اسم الشركة"
+
+msgid "Industry"
+msgstr "مجال العمل"
+
+msgid "Company Size"
+msgstr "حجم الشركة"
+
+msgid "Select…"
+msgstr "اختر..."
+
+msgid "Website"
+msgstr "الموقع الإلكتروني"
+
+msgid "Description"
+msgstr "الوصف"
+
+msgid "Save Company Info"
+msgstr "حفظ بيانات الشركة"
+
+msgid "Public Company Page"
+msgstr "صفحة الشركة العامة"
+
+msgid "Share your company page to showcase your brand and open positions."
+msgstr "شارك صفحة شركتك لعرض وظائفك المتاحة."
+
+msgid "View Public Page"
+msgstr "عرض الصفحة العامة"
+
+msgid "Position / Department"
+msgstr "المنصب / القسم"
+
+msgid "Change Password"
+msgstr "تغيير كلمة المرور"
+
+msgid "Current Password"
+msgstr "كلمة المرور الحالية"
+
+msgid "New Password"
+msgstr "كلمة المرور الجديدة"
+
+msgid "Confirm New Password"
+msgstr "تأكيد كلمة المرور الجديدة"
+
+msgid "Update Password"
+msgstr "تحديث كلمة المرور"
+
+msgid "Danger Zone"
+msgstr "منطقة الخطر"
+
+msgid "Disabling your account will prevent you from logging in. This action cannot be easily undone."
+msgstr "تعطيل حسابك سيمنعك من تسجيل الدخول. لا يمكن التراجع عن هذا الإجراء بسهولة."
+
+msgid "Delete / Disable Account"
+msgstr "حذف / تعطيل الحساب"
+
+msgid "Type your username to confirm:"
+msgstr "اكتب اسم المستخدم للتأكيد:"
+
+msgid "Disable My Account"
+msgstr "تعطيل حسابي"

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags i18n %}
+
+{% block title %}{% blocktrans %}Team Management{% endblocktrans %}{% endblock %}
+
+{% block content %}
+
+<!-- ── Page Header ── -->
+<div class="page-header animate-in">
+    <div class="page-header-inner">
+        <div>
+            <div class="page-eyebrow">
+                <i class="fas fa-users"></i>
+                {% trans "إعدادات الفريق" %}
+            </div>
+            <h1 class="page-title">{% trans "إدارة الفريق" %}</h1>
+            <p class="page-subtitle">{% trans "أضف وأدر أعضاء فريق شركتك وصلاحياتهم" %}</p>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: start;">
+
+    <!-- Add Member Form -->
+    <div class="card animate-in">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-user-plus" style="color: var(--brand-blue); margin-inline-end: 8px;"></i>
+                {% trans "إضافة عضو" %}
+            </h3>
+        </div>
+        <form method="post" action="{% url 'accounts:add_team_member' %}">
+            {% csrf_token %}
+            {{ create_form|crispy }}
+            <button type="submit" class="btn btn-primary w-100 mt-2" id="btn-add-member">
+                <i class="fas fa-plus"></i>
+                {% trans "إضافة عضو جديد" %}
+            </button>
+        </form>
+    </div>
+
+    <!-- Members List -->
+    <div class="card animate-in" style="padding: 0; overflow: hidden;">
+        <div class="card-header" style="padding: 20px 24px 16px;">
+            <h3 class="card-title">
+                <i class="fas fa-users" style="color: var(--brand-blue); margin-inline-end: 8px;"></i>
+                {% trans "أعضاء الفريق" %}
+            </h3>
+            <span class="badge badge-blue">{{ members|length }}</span>
+        </div>
+        <div class="table-wrapper" style="border: none; border-radius: 0;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "المستخدم" %}</th>
+                        <th style="text-align: center;">{% trans "الدور" %}</th>
+                        <th style="text-align: center;">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in members %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--brand-blue-soft); color: var(--brand-blue); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
+                                    {{ member.username|slice:":1"|upper }}
+                                </div>
+                                <span style="font-weight: 600; color: var(--text-main);">{{ member.username }}</span>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <select form="perm-form-{{ member.id }}" name="team_role" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-light); font-family: inherit;">
+                                <option value="" {% if not member.team_role %}selected{% endif %}>{% trans "اختر دوراً..." %}</option>
+                                <option value="editor" {% if member.team_role == 'editor' %}selected{% endif %}>{% trans "محرر" %} (Editor)</option>
+                                <option value="reviewer" {% if member.team_role == 'reviewer' %}selected{% endif %}>{% trans "مقيّم" %} (Reviewer)</option>
+                                <option value="approver" {% if member.team_role == 'approver' %}selected{% endif %}>{% trans "صاحب قرار" %} (Approver)</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;">
+                            <div style="display: flex; gap: 6px; justify-content: center;">
+                                <form id="perm-form-{{ member.id }}" method="post"
+                                      action="{% url 'accounts:edit_team_member_permissions' member.id %}">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm btn-outline" type="submit">
+                                        <i class="fas fa-floppy-disk"></i>
+                                        {% trans "حفظ" %}
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'accounts:remove_team_member' member.id %}">
+                                    {% csrf_token %}
+                                    <button class="btn btn-sm btn-danger" type="submit"
+                                            onclick="return confirm('{% trans \"هل أنت متأكد من حذف هذا العضو؟\" %}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state" style="padding: 40px;">
+                                <div class="empty-state-icon"><i class="fas fa-users"></i></div>
+                                <h3>{% trans "لا يوجد أعضاء فريق" %}</h3>
+                                <p>{% trans "ابدأ بإضافة أعضاء لفريقك من النموذج المجاور." %}</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

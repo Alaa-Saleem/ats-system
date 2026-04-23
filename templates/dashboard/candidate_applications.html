@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "طلباتي الوظيفية" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Tracker Pipeline ── */
+.tracker-pipeline {
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    padding: 4px 0 10px;
+    scrollbar-width: none;
+    margin: 14px 0;
+}
+.tracker-pipeline::-webkit-scrollbar { display: none; }
+
+.tracker-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 80px;
+}
+.tracker-step-dot {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border-subtle);
+    background: var(--bg-surface-2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+.tracker-step.active .tracker-step-dot {
+    background: var(--brand-blue);
+    border-color: var(--brand-blue);
+    color: #fff;
+    box-shadow: 0 0 0 4px var(--brand-blue-soft);
+}
+.tracker-step.done .tracker-step-dot {
+    background: var(--success);
+    border-color: var(--success);
+    color: #fff;
+}
+.tracker-step.rejected-step .tracker-step-dot {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+}
+.tracker-step-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: 6px;
+    text-align: center;
+    white-space: nowrap;
+}
+.tracker-step.active .tracker-step-label  { color: var(--brand-blue); }
+.tracker-step.done .tracker-step-label    { color: var(--success); }
+.tracker-step.rejected-step .tracker-step-label { color: var(--danger); }
+
+.tracker-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border-subtle);
+    margin-top: -22px;
+    transition: background 0.3s;
+}
+.tracker-line.done   { background: var(--success); }
+.tracker-line.active { background: var(--brand-blue); }
+
+/* ── Status Badges ── */
+.status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 700;
+}
+.status-review    { background: rgba(245,158,11,0.12); color: #d97706; }
+.status-interview { background: rgba(59,130,246,0.12); color: #2563eb; }
+.status-accepted  { background: rgba(16,185,129,0.12); color: #059669; }
+.status-offer     { background: rgba(139,92,246,0.12); color: #7c3aed; }
+.status-rejected  { background: rgba(239,68,68,0.12); color: #dc2626; }
+
+/* ── App Card ── */
+.app-tracker-card {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    transition: var(--transition);
+    box-shadow: var(--card-shadow);
+}
+.app-tracker-card:hover {
+    border-color: var(--brand-blue);
+    box-shadow: 0 6px 24px rgba(27,117,188,0.1);
+    transform: translateY(-2px);
+}
+.app-tracker-card.rejected-card {
+    border-color: rgba(239,68,68,0.25);
+    opacity: 0.82;
+}
+
+/* Filter tabs */
+.filter-tabs {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+.filter-tab {
+    padding: 7px 18px;
+    border-radius: 999px;
+    font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; border: 1.5px solid var(--border-subtle);
+    background: transparent; font-family: inherit;
+    color: var(--text-muted);
+    transition: var(--transition);
+}
+.filter-tab.active, .filter-tab:hover {
+    background: var(--brand-blue); color: #fff;
+    border-color: var(--brand-blue);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Page Header ── -->
+<div class="page-header animate-in">
+    <div>
+        <div class="page-eyebrow">
+            <i class="fas fa-paper-plane"></i>
+            {% trans "طلباتي" %}
+        </div>
+        <h1 class="page-title">{% trans "متابعة طلباتي الوظيفية" %}</h1>
+        <p class="page-subtitle">{% trans "تتبع حالة كل طلب من التقديم حتى التوظيف" %}</p>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+        {% if unread_notifications > 0 %}
+        <div style="position:relative; display:inline-block;">
+            <i class="fas fa-bell" style="font-size:1.3rem; color:var(--accent-gold);"></i>
+            <span style="position:absolute; top:-6px; right:-6px; background:var(--danger); color:#fff; border-radius:999px; font-size:0.62rem; font-weight:800; padding:2px 6px; line-height:1;">{{ unread_notifications }}</span>
+        </div>
+        {% endif %}
+        <a href="{% url 'public:landing' %}" class="btn btn-primary">
+            <i class="fas fa-search"></i>
+            {% trans "تصفح وظائف" %}
+        </a>
+    </div>
+</div>
+
+<!-- ── Filter Tabs ── -->
+<div class="filter-tabs">
+    <button class="filter-tab active" onclick="filterApps('all', this)">
+        {% trans "الكل" %} ({{ applications|length }})
+    </button>
+    <button class="filter-tab" onclick="filterApps('review', this)">
+        <i class="fas fa-hourglass-half" style="margin-inline-end:4px;"></i> {% trans "قيد المراجعة" %}
+    </button>
+    <button class="filter-tab" onclick="filterApps('interview', this)">
+        <i class="fas fa-video" style="margin-inline-end:4px;"></i> {% trans "مقابلة" %}
+    </button>
+    <button class="filter-tab" onclick="filterApps('accepted', this)">
+        <i class="fas fa-check" style="margin-inline-end:4px;"></i> {% trans "مقبول" %}
+    </button>
+    <button class="filter-tab" onclick="filterApps('rejected', this)" style="border-color:rgba(239,68,68,0.4); color:var(--danger);">
+        <i class="fas fa-times" style="margin-inline-end:4px;"></i> {% trans "مرفوض" %}
+    </button>
+</div>
+
+<!-- ── Applications List ── -->
+{% if applications %}
+<div id="applicationsList">
+
+{% for app in applications %}
+<div class="app-tracker-card {% if 'reject' in app.current_stage.name|lower %}rejected-card{% endif %}"
+     data-stage="{{ app.current_stage.name|lower }}"
+     id="app-{{ app.id }}">
+
+    <!-- Header Row -->
+    <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:46px; height:46px; border-radius:12px; background:var(--brand-blue-soft); color:var(--brand-blue); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; flex-shrink:0;">
+                {{ app.job.company.company_name|slice:":1"|upper }}
+            </div>
+            <div>
+                <div style="font-size:1.05rem; font-weight:800; color:var(--text-main);">{{ app.job.title }}</div>
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
+                    <i class="fas fa-building" style="margin-inline-end:4px;"></i>{{ app.job.company.company_name }}
+                    {% if app.job.location %}
+                    &nbsp;·&nbsp;<i class="fas fa-map-marker-alt" style="margin-inline-end:4px;"></i>{{ app.job.location }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+            {% if 'reject' in app.current_stage.name|lower %}
+            <span class="status-badge status-rejected"><i class="fas fa-times-circle"></i> {% trans "مرفوض" %}</span>
+            {% elif 'interview' in app.current_stage.name|lower or 'مقابلة' in app.current_stage.name %}
+            <span class="status-badge status-interview"><i class="fas fa-video"></i> {% trans "مقابلة" %}</span>
+            {% elif 'hired' in app.current_stage.name|lower or 'accept' in app.current_stage.name|lower %}
+            <span class="status-badge status-accepted"><i class="fas fa-check-circle"></i> {% trans "مقبول" %}</span>
+            {% elif 'offer' in app.current_stage.name|lower %}
+            <span class="status-badge status-offer"><i class="fas fa-file-contract"></i> {% trans "عرض وظيفي" %}</span>
+            {% else %}
+            <span class="status-badge status-review"><i class="fas fa-hourglass-half"></i> {% trans "قيد المراجعة" %}</span>
+            {% endif %}
+            <span style="font-size:0.75rem; color:var(--text-muted);">
+                <i class="fas fa-calendar-alt" style="margin-inline-end:3px;"></i>{{ app.created_at|date:"d M Y" }}
+            </span>
+        </div>
+    </div>
+
+    <!-- ── Tracker ── -->
+    <div class="tracker-pipeline">
+
+        {% if 'reject' in app.current_stage.name|lower %}
+        <div class="tracker-step done">
+            <div class="tracker-step-dot"><i class="fas fa-check"></i></div>
+            <div class="tracker-step-label">{% trans "تم التقديم" %}</div>
+        </div>
+        <div class="tracker-line done"></div>
+        <div class="tracker-step rejected-step">
+            <div class="tracker-step-dot"><i class="fas fa-times"></i></div>
+            <div class="tracker-step-label">{{ app.current_stage.name }}</div>
+        </div>
+
+        {% elif 'hired' in app.current_stage.name|lower %}
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "تم التقديم" %}</div></div>
+        <div class="tracker-line done"></div>
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "مراجعة" %}</div></div>
+        <div class="tracker-line done"></div>
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "مقابلة" %}</div></div>
+        <div class="tracker-line done"></div>
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "عرض وظيفي" %}</div></div>
+        <div class="tracker-line done"></div>
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-star"></i></div><div class="tracker-step-label">{% trans "تم التوظيف" %} 🎉</div></div>
+
+        {% elif 'offer' in app.current_stage.name|lower or 'accept' in app.current_stage.name|lower %}
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "تم التقديم" %}</div></div>
+        <div class="tracker-line done"></div>
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "مراجعة" %}</div></div>
+        <div class="tracker-line done"></div>
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "مقابلة" %}</div></div>
+        <div class="tracker-line active"></div>
+        <div class="tracker-step active"><div class="tracker-step-dot"><i class="fas fa-file-contract"></i></div><div class="tracker-step-label">{{ app.current_stage.name }}</div></div>
+        <div class="tracker-line"></div>
+        <div class="tracker-step"><div class="tracker-step-dot"><i class="fas fa-briefcase"></i></div><div class="tracker-step-label">{% trans "تم التوظيف" %}</div></div>
+
+        {% elif 'interview' in app.current_stage.name|lower or 'مقابلة' in app.current_stage.name %}
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "تم التقديم" %}</div></div>
+        <div class="tracker-line done"></div>
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "مراجعة" %}</div></div>
+        <div class="tracker-line active"></div>
+        <div class="tracker-step active"><div class="tracker-step-dot"><i class="fas fa-video"></i></div><div class="tracker-step-label">{{ app.current_stage.name }}</div></div>
+        <div class="tracker-line"></div>
+        <div class="tracker-step"><div class="tracker-step-dot"><i class="fas fa-file-contract"></i></div><div class="tracker-step-label">{% trans "عرض وظيفي" %}</div></div>
+        <div class="tracker-line"></div>
+        <div class="tracker-step"><div class="tracker-step-dot"><i class="fas fa-briefcase"></i></div><div class="tracker-step-label">{% trans "تم التوظيف" %}</div></div>
+
+        {% else %}
+        <div class="tracker-step done"><div class="tracker-step-dot"><i class="fas fa-check"></i></div><div class="tracker-step-label">{% trans "تم التقديم" %}</div></div>
+        <div class="tracker-line active"></div>
+        <div class="tracker-step active"><div class="tracker-step-dot"><i class="fas fa-hourglass-half"></i></div><div class="tracker-step-label">{{ app.current_stage.name }}</div></div>
+        <div class="tracker-line"></div>
+        <div class="tracker-step"><div class="tracker-step-dot"><i class="fas fa-video"></i></div><div class="tracker-step-label">{% trans "مقابلة" %}</div></div>
+        <div class="tracker-line"></div>
+        <div class="tracker-step"><div class="tracker-step-dot"><i class="fas fa-file-contract"></i></div><div class="tracker-step-label">{% trans "عرض وظيفي" %}</div></div>
+        <div class="tracker-line"></div>
+        <div class="tracker-step"><div class="tracker-step-dot"><i class="fas fa-briefcase"></i></div><div class="tracker-step-label">{% trans "تم التوظيف" %}</div></div>
+        {% endif %}
+
+    </div>
+
+    <!-- Footer -->
+    {% if app.job.job_type or app.job.salary %}
+    <div style="display:flex; align-items:center; gap:10px; padding-top:14px; border-top:1px solid var(--border-subtle); flex-wrap:wrap;">
+        {% if app.job.job_type %}
+        <span style="font-size:0.78rem; color:var(--text-muted); background:var(--bg-surface-2); padding:3px 10px; border-radius:6px;">
+            <i class="fas fa-clock" style="margin-inline-end:4px;"></i>{{ app.job.job_type }}
+        </span>
+        {% endif %}
+        {% if app.job.salary %}
+        <span style="font-size:0.78rem; color:var(--accent-gold); font-weight:700; background:var(--accent-gold-soft); padding:3px 10px; border-radius:6px;">
+            <i class="fas fa-coins" style="margin-inline-end:4px;"></i>${{ app.job.salary }}
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endfor %}
+
+</div>
+
+{% else %}
+<div class="empty-state" style="padding: 80px 0;">
+    <div class="empty-state-icon"><i class="fas fa-paper-plane"></i></div>
+    <h3>{% trans "لم تتقدم لأي وظيفة بعد" %}</h3>
+    <p>{% trans "ابدأ بتصفح الوظائف المتاحة والتقديم الآن!" %}</p>
+    <a href="{% url 'public:landing' %}" class="btn btn-primary" style="margin-top:20px;">
+        <i class="fas fa-search"></i>
+        {% trans "تصفح الوظائف" %}
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterApps(category, tab) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.app-tracker-card').forEach(card => {
+        const stage = card.dataset.stage || '';
+        let show = false;
+        if (category === 'all') {
+            show = true;
+        } else if (category === 'review') {
+            show = !['interview','مقابلة','accept','hired','offer','reject','مرفوض'].some(k => stage.includes(k));
+        } else if (category === 'interview') {
+            show = stage.includes('interview') || stage.includes('مقابلة');
+        } else if (category === 'accepted') {
+            show = stage.includes('accept') || stage.includes('hired') || stage.includes('offer');
+        } else if (category === 'rejected') {
+            show = stage.includes('reject') || stage.includes('مرفوض');
+        }
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+</script>
+{% endblock %}

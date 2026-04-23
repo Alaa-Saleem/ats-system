@@ -1,0 +1,522 @@
+{% load crispy_forms_tags static i18n %}
+<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_CODE == 'ar' %}rtl{% else %}ltr{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "تسجيل الدخول" %} — ATS Premium</title>
+    <meta name="description" content="{% trans 'تسجيل الدخول إلى نظام إدارة التوظيف المتميز' %}">
+
+    <!-- Bootstrap RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue:       #1B75BC;
+            --blue-dark:  #1460A0;
+            --blue-light: #3B92D8;
+            --blue-soft:  rgba(27, 117, 188, 0.1);
+            --gold:       #E8B84B;
+            --bg:         #F0F4FA;
+            --surface:    #FFFFFF;
+            --text:       #0A1628;
+            --muted:      #6B7A99;
+            --border:     #DDE4F0;
+            --radius:     16px;
+            --shadow:     0 20px 60px rgba(10, 22, 40, 0.12), 0 4px 16px rgba(10, 22, 40, 0.06);
+            --transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme='dark'] {
+            --bg:         #06080C;
+            --surface:    #0D1320;
+            --text:       #EFF3FA;
+            --muted:      #7A90B0;
+            --border:     #1E293B;
+            --shadow:     0 20px 60px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.2);
+            --blue-soft:  rgba(59, 146, 216, 0.15);
+            --input-bg:   #0B0F19;
+            --input-focus:#151D2D;
+            --label-color:#A0B2C9;
+            --btn-google: #1E293B;
+            --btn-google-txt: #EFF3FA;
+            color-scheme: dark;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+            color: var(--text);
+        }
+
+        /* Background decor */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -30%;
+            right: -15%;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(27, 117, 188, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -20%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(232, 184, 75, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* ── Login Card ── */
+        .login-wrap {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        /* Top accent strip */
+        .login-card-top {
+            height: 5px;
+            background: linear-gradient(90deg, var(--blue) 0%, var(--blue-light) 60%, var(--gold) 100%);
+        }
+
+        .login-card-body {
+            padding: 44px 44px 36px;
+        }
+
+        /* ── Logo & Title ── */
+        .login-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 36px;
+        }
+
+        .login-logo-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-light) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.4rem;
+            box-shadow: 0 6px 20px rgba(27, 117, 188, 0.35);
+            flex-shrink: 0;
+        }
+
+        .login-logo-text .brand {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .login-logo-text .tagline {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .login-heading {
+            margin-bottom: 28px;
+        }
+
+        .login-heading h1 {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-heading p {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        /* ── Form ── */
+        label {
+            display: block;
+            font-size: 0.83rem;
+            font-weight: 600;
+            color: var(--label-color, #374563);
+            margin-bottom: 7px;
+        }
+
+        .form-control,
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            background: var(--input-bg, #F8FAFD);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text);
+            outline: none;
+            transition: var(--transition);
+            line-height: 1.5;
+            margin-bottom: 4px;
+        }
+
+        .form-control:focus,
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(27, 117, 188, 0.12);
+            background: var(--input-focus, #fff);
+        }
+
+        .form-control::placeholder { color: var(--muted); }
+
+        .input-group-field {
+            margin-bottom: 18px;
+        }
+
+        /* ── Buttons ── */
+        .btn-login {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px 24px;
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 16px rgba(27, 117, 188, 0.3);
+            margin-top: 6px;
+        }
+
+        .btn-login:hover {
+            background: var(--blue-dark);
+            box-shadow: 0 8px 24px rgba(27, 117, 188, 0.38);
+            transform: translateY(-1px);
+        }
+
+        .btn-login:active { transform: translateY(0); }
+
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 24px;
+            background: var(--btn-google, #fff);
+            color: var(--btn-google-txt, #3C4257);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-google:hover {
+            background: #F8FAFD;
+            border-color: #B8C8E0;
+            color: #3C4257;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .btn-google img { width: 20px; }
+
+        /* ── Divider ── */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 22px 0;
+            color: #C0CCDE;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Links ── */
+        .forgot-link {
+            display: block;
+            text-align: center;
+            margin-top: 14px;
+            color: var(--blue);
+            font-size: 0.84rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .forgot-link:hover { color: var(--blue-dark); text-decoration: underline; }
+
+        /* ── Register Section ── */
+        .register-section {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .register-section p {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 14px;
+        }
+
+        .register-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-reg {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-reg-company {
+            background: var(--blue-soft);
+            color: var(--blue);
+            border: 1.5px solid rgba(27, 117, 188, 0.2);
+        }
+
+        .btn-reg-company:hover {
+            background: var(--blue);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(27, 117, 188, 0.25);
+        }
+
+        .btn-reg-candidate {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            border: 1.5px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-reg-candidate:hover {
+            background: #059669;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        /* ── Alerts ── */
+        .auth-alert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 18px;
+        }
+
+        .auth-alert.error   { background: rgba(239,68,68,0.1);  color: #DC2626; border: 1px solid rgba(239,68,68,0.2); }
+        .auth-alert.success { background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2); }
+        .auth-alert.info    { background: var(--blue-soft); color: var(--blue); border: 1px solid rgba(27,117,188,0.2); }
+
+        /* ── Crispy overrides ── */
+        .asteriskField { display: none; }
+        .form-group { margin-bottom: 18px; }
+        .invalid-feedback { font-size: 0.78rem; color: #DC2626; margin-top: 4px; }
+        .is-invalid { border-color: #EF4444 !important; }
+
+        @media (max-width: 520px) {
+            .login-card-body { padding: 30px 24px 28px; }
+            .register-btns { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-controls" style="position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 10;">
+    <!-- Language Switcher -->
+    <form action="{% url 'set_language' %}" method="post" id="lang-form" style="margin:0;">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        {% get_current_language as LANGUAGE_CODE %}
+        {% get_available_languages as LANGUAGES %}
+        {% get_language_info_list for LANGUAGES as languages %}
+        <select name="language"
+                onchange="this.form.submit()"
+                style="background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-family: 'Cairo', sans-serif;">
+            {% for language in languages %}
+            <option value="{{ language.code }}" {% if language.code == LANGUAGE_CODE %}selected{% endif %}>
+                {{ language.name_local|capfirst }}
+            </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <!-- Theme Toggle -->
+    <button onclick="toggleTheme()" style="background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer;">
+        <i class="fas fa-moon dark-icon"></i>
+        <i class="fas fa-sun light-icon" style="display:none;"></i>
+    </button>
+</div>
+
+<script>
+    function toggleTheme() {
+        var root = document.documentElement;
+        var current = root.getAttribute('data-theme');
+        var newTheme = current === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateIcons();
+    }
+    function updateIcons() {
+        var theme = document.documentElement.getAttribute('data-theme');
+        var darkIcons = document.querySelectorAll('.dark-icon');
+        var lightIcons = document.querySelectorAll('.light-icon');
+        if (theme === 'dark') {
+            darkIcons.forEach(i => i.style.display = 'none');
+            lightIcons.forEach(i => i.style.display = 'inline-block');
+        } else {
+            darkIcons.forEach(i => i.style.display = 'inline-block');
+            lightIcons.forEach(i => i.style.display = 'none');
+        }
+    }
+    document.addEventListener("DOMContentLoaded", updateIcons);
+</script>
+
+<div class="login-wrap">
+    <div class="login-card">
+        <!-- Color strip -->
+        <div class="login-card-top"></div>
+
+        <div class="login-card-body">
+            <!-- Logo -->
+            <div class="login-logo">
+                <div class="login-logo-icon">
+                    <i class="fas fa-users-gear"></i>
+                </div>
+                <div class="login-logo-text">
+                    <div class="brand">ATS Premium</div>
+                    <div class="tagline">{% trans "نظام إدارة التوظيف المتميز" %}</div>
+                </div>
+            </div>
+
+            <!-- Heading -->
+            <div class="login-heading">
+                <h1>{% trans "تسجيل الدخول" %}</h1>
+                <p>{% trans "مرحباً بك مجدداً 👋 أدخل بيانات حسابك" %}</p>
+            </div>
+
+            <!-- Alerts -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="auth-alert {% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}">
+                    <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Form -->
+            <form method="post" id="login-form" novalidate>
+                {% csrf_token %}
+                {{ form|crispy }}
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-right-to-bracket"></i>
+                    {% trans "تسجيل الدخول" %}
+                </button>
+            </form>
+
+            <!-- Forgot password -->
+            <a href="{% url 'accounts:password_reset' %}" class="forgot-link">
+                <i class="fas fa-key" style="font-size: 0.8rem;"></i>
+                {% trans "هل نسيت كلمة المرور؟" %}
+            </a>
+
+            <!-- Google Login Disabled
+            <div class="auth-divider">{% trans "أو" %}</div>
+            <a href="/accounts/google/login/" class="btn-google" id="btn-google-login">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
+                {% trans "المتابعة بحساب Google" %}
+            </a>
+            -->
+
+            <!-- Register -->
+            <div class="register-section">
+                <p>{% trans "ليس لديك حساب بعد؟ اختر نوع التسجيل:" %}</p>
+                <div class="register-btns">
+                    <a href="{% url 'accounts:register_company' %}" class="btn-reg btn-reg-company" id="btn-register-company">
+                        <i class="fas fa-building"></i>
+                        {% trans "كشركة" %}
+                    </a>
+                    <a href="{% url 'accounts:register_candidate' %}" class="btn-reg btn-reg-candidate" id="btn-register-candidate">
+                        <i class="fas fa-user-graduate"></i>
+                        {% trans "كباحث عن عمل" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

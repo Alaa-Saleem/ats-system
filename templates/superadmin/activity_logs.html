@@ -1,0 +1,101 @@
+{% extends "superadmin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Activity Logs" %}{% endblock %}
+{% block page_title %}{% trans "Activity Logs" %}{% endblock %}
+{% block page_subtitle %}{{ page_obj.paginator.count }} {% trans "log entries" %}{% endblock %}
+
+{% block content %}
+
+<div class="sa-panel">
+
+  <form method="get" class="sa-filters">
+    <i class="fas fa-search" style="color:var(--sa-text-muted);"></i>
+    <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Search user or description…' %}" class="sa-filter-input" style="min-width:220px;">
+
+    <select name="action" class="sa-filter-select" onchange="this.form.submit()">
+      <option value="">{% trans "All Actions" %}</option>
+      {% for code, label in action_choices %}
+      <option value="{{ code }}" {% if action_filter == code %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="company" class="sa-filter-select" onchange="this.form.submit()">
+      <option value="">{% trans "All Companies" %}</option>
+      {% for c in companies %}
+      <option value="{{ c.pk }}" {% if company_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.company_name }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="sa-btn sa-btn-primary sa-btn-sm">{% trans "Filter" %}</button>
+    {% if q or action_filter or company_filter %}
+    <a href="{% url 'superadmin:activity_logs' %}" class="sa-btn sa-btn-ghost sa-btn-sm">{% trans "Clear" %}</a>
+    {% endif %}
+  </form>
+
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead>
+        <tr>
+          <th>{% trans "User" %}</th>
+          <th>{% trans "Company" %}</th>
+          <th>{% trans "Action" %}</th>
+          <th>{% trans "Description" %}</th>
+          <th>{% trans "Date" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in page_obj %}
+        <tr>
+          <td>
+            <span style="font-weight:600;">{{ log.user.username|default:"System" }}</span>
+            {% if log.user.role %}<div class="sa-fs-sm" style="color:var(--sa-text-muted);">{{ log.user.role }}</div>{% endif %}
+          </td>
+          <td class="muted">{{ log.company.company_name }}</td>
+          <td>
+            {% if 'delete' in log.action or 'remove' in log.action %}
+            <span class="sa-badge closed">{{ log.get_action_display }}</span>
+            {% elif 'create' in log.action or 'add' in log.action %}
+            <span class="sa-badge active">{{ log.get_action_display }}</span>
+            {% elif 'SuperAdmin' in log.description %}
+            <span class="sa-badge gold">{{ log.get_action_display }}</span>
+            {% else %}
+            <span class="sa-badge disabled">{{ log.get_action_display }}</span>
+            {% endif %}
+          </td>
+          <td style="max-width:400px;">
+            <span style="color:var(--sa-text);font-size:13px;">{{ log.description }}</span>
+          </td>
+          <td class="muted" style="white-space:nowrap;">{{ log.created_at|date:"d M Y H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5">
+            <div class="sa-empty">
+              <div class="sa-empty-icon"><i class="fas fa-scroll"></i></div>
+              <div class="sa-empty-title">{% trans "No activity logs found" %}</div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="sa-pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&action={{ action_filter }}&company={{ company_filter }}" class="sa-page-link"><i class="fas fa-chevron-left"></i></a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <a href="?page={{ num }}&q={{ q }}&action={{ action_filter }}&company={{ company_filter }}"
+       class="sa-page-link {% if num == page_obj.number %}current{% endif %}">{{ num }}</a>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&action={{ action_filter }}&company={{ company_filter }}" class="sa-page-link"><i class="fas fa-chevron-right"></i></a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

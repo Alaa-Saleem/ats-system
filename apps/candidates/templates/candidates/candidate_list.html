@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Candidate List</title>
+</head>
+<body>
+    <h2>List of Candidates</h2>
+    <table border="1">
+        <tr>
+            <th>Full Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+        {% for candidate in candidates %}
+        <tr>
+            <td>{{ candidate.full_name }}</td>
+            <td>{{ candidate.phone }}</td>
+            <td>{{ candidate.email }}</td>
+            <td>
+                <!-- روابط للتعديل أو الحذف أو عرض التفاصيل -->
+                <a href="{% url 'candidates:candidate_detail' candidate.pk %}">View</a> | <a href="{% url 'candidates:edit_candidate' candidate.pk %}">Edit</a> | <a href="{% url 'candidates:delete_candidate' candidate.pk %}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

@@ -1,0 +1,133 @@
+{% extends "superadmin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Jobs Management" %}{% endblock %}
+{% block page_title %}{% trans "Jobs Management" %}{% endblock %}
+{% block page_subtitle %}{{ page_obj.paginator.count }} {% trans "jobs total" %}{% endblock %}
+
+{% block content %}
+
+<div class="sa-panel">
+
+  <form method="get" class="sa-filters">
+    <i class="fas fa-search" style="color:var(--sa-text-muted);"></i>
+    <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Search title or company…' %}" class="sa-filter-input" style="min-width:220px;">
+
+    <select name="status" class="sa-filter-select" onchange="this.form.submit()">
+      <option value="">{% trans "All Statuses" %}</option>
+      <option value="open"   {% if status_filter == 'open'   %}selected{% endif %}>{% trans "Open" %}</option>
+      <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>{% trans "Closed" %}</option>
+    </select>
+
+    <select name="company" class="sa-filter-select" onchange="this.form.submit()">
+      <option value="">{% trans "All Companies" %}</option>
+      {% for c in companies %}
+      <option value="{{ c.pk }}" {% if company_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.company_name }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="sa-btn sa-btn-primary sa-btn-sm">{% trans "Filter" %}</button>
+    {% if q or status_filter or company_filter %}
+    <a href="{% url 'superadmin:jobs_list' %}" class="sa-btn sa-btn-ghost sa-btn-sm">{% trans "Clear" %}</a>
+    {% endif %}
+
+    <div class="sa-bulk-sel">
+      <span class="sa-fs-sm sa-text-muted"><span id="saBulkCount">0</span> {% trans "selected" %}</span>
+      <button type="button" onclick="saSubmitBulk('close_jobs')" class="sa-btn sa-btn-orange sa-btn-sm">
+        <i class="fas fa-ban"></i> {% trans "Close Selected" %}
+      </button>
+      <button type="button" onclick="saSubmitBulk('soft_delete')" class="sa-btn sa-btn-danger sa-btn-sm">
+        <i class="fas fa-trash"></i> {% trans "Delete Selected" %}
+      </button>
+    </div>
+  </form>
+
+  <form id="saBulkForm" action="{% url 'superadmin:bulk_action' %}" method="post" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="model" value="job">
+    <input type="hidden" name="action" value="">
+  </form>
+
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead>
+        <tr>
+          <th class="check-col"><input type="checkbox" class="sa-checkbox" onchange="saToggleAll(this)"></th>
+          <th>{% trans "Title" %}</th>
+          <th>{% trans "Company" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Applicants" %}</th>
+          <th>{% trans "Deadline" %}</th>
+          <th style="text-align:end;">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in page_obj %}
+        <tr>
+          <td><input type="checkbox" class="sa-checkbox sa-row-check" value="{{ job.pk }}"></td>
+          <td>
+            <a href="{% url 'superadmin:job_detail' job.pk %}" style="color:var(--sa-text);font-weight:600;text-decoration:none;">
+              {{ job.title }}
+            </a>
+          </td>
+          <td>
+            <a href="{% url 'superadmin:company_detail' job.company.pk %}" style="color:var(--sa-text);text-decoration:none;">
+              {{ job.company.company_name }}
+            </a>
+          </td>
+          <td class="muted">{{ job.get_job_type_display }}</td>
+          <td>
+            <span class="sa-badge {{ job.status }}">{{ job.get_status_display }}</span>
+          </td>
+          <td>
+            <span class="sa-badge {% if job.app_count > 0 %}gold{% else %}disabled{% endif %}">{{ job.app_count }}</span>
+          </td>
+          <td class="muted">
+            {% if job.application_deadline %}
+              {% if job.application_deadline < today %}
+              <span style="color:var(--sa-red);">{{ job.application_deadline }}</span>
+              {% else %}
+              {{ job.application_deadline }}
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            <div class="sa-flex" style="justify-content:flex-end;">
+              <a href="{% url 'superadmin:job_detail' job.pk %}" class="sa-btn sa-btn-ghost sa-btn-icon" title="{% trans 'View' %}"><i class="fas fa-eye"></i></a>
+              {% if job.status == 'open' %}
+              <form method="post" action="{% url 'superadmin:job_close' job.pk %}" style="display:inline;" onsubmit="return confirm('{% trans "Close this job?" %}')">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-orange sa-btn-icon" title="{% trans 'Close Job' %}"><i class="fas fa-ban"></i></button>
+              </form>
+              {% endif %}
+              <form method="post" action="{% url 'superadmin:job_delete' job.pk %}" style="display:inline;" onsubmit="return confirm('{% trans "Move to Trash?" %}')">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-danger sa-btn-icon" title="{% trans 'Delete' %}"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8"><div class="sa-empty"><div class="sa-empty-icon"><i class="fas fa-briefcase"></i></div><div class="sa-empty-title">{% trans "No jobs found" %}</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="sa-pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status_filter }}&company={{ company_filter }}" class="sa-page-link"><i class="fas fa-chevron-left"></i></a>{% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <a href="?page={{ num }}&q={{ q }}&status={{ status_filter }}&company={{ company_filter }}" class="sa-page-link {% if num == page_obj.number %}current{% endif %}">{{ num }}</a>
+    {% endfor %}
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status_filter }}&company={{ company_filter }}" class="sa-page-link"><i class="fas fa-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  var today = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

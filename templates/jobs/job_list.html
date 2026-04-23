@@ -1,0 +1,719 @@
+{% extends 'base.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "قائمة الوظائف" %}{% endblock %}
+
+{% block content %}
+
+<!-- Chart.js for Analytics Modal -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- QRCode.js for Job Link Modal -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.05);
+        --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    [data-theme="dark"] {
+        --glass-bg: rgba(30, 30, 35, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Filters Bar */
+    .filters-bar {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-soft);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .filters-group {
+        display: flex;
+        flex: 1;
+        gap: 1rem;
+        min-width: 300px;
+        flex-wrap: wrap;
+    }
+
+    .filter-input {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-main);
+        padding: 0.6rem 1rem;
+        border-radius: var(--radius-md);
+        outline: none;
+        flex: 1;
+        min-width: 150px;
+        transition: all 0.3s ease;
+    }
+
+    .filter-input:focus {
+        border-color: var(--brand-blue);
+        box-shadow: 0 0 0 3px var(--brand-blue-soft);
+    }
+
+    /* Job Card */
+    .job-card {
+        background: var(--bg-surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-subtle);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        transition: var(--transition-bounce);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .job-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+        border-color: var(--brand-blue-light);
+    }
+
+    /* Top highlight bar */
+    .job-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--brand-blue) 0%, #00d2ff 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .job-card:hover::before { opacity: 1; }
+    
+    .job-card.closed-job::before {
+        background: var(--text-muted);
+        opacity: 1;
+    }
+
+    .job-card-body {
+        padding: 1.5rem;
+        flex: 1;
+    }
+
+    .job-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .job-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .job-meta {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .job-meta i { width: 16px; text-align: center; color: var(--brand-blue); }
+
+    .job-tags {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .tag {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 50px;
+        font-weight: 600;
+        background: var(--bg-body);
+        color: var(--text-muted);
+        border: 1px solid var(--border-subtle);
+    }
+
+    .tag.active { background: rgba(25, 135, 84, 0.1); color: #198754; border-color: rgba(25, 135, 84, 0.2); }
+    .tag.closed { background: rgba(220, 53, 69, 0.1); color: #dc3545; border-color: rgba(220, 53, 69, 0.2); }
+    .tag.type { background: var(--brand-blue-soft); color: var(--brand-blue); border-color: rgba(13, 110, 253, 0.2); }
+
+    /* Stats row */
+    .job-stats {
+        background: var(--bg-body);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-main {
+        text-align: center;
+    }
+    
+    .stat-main .number {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--brand-blue);
+        line-height: 1;
+    }
+    
+    .stat-main .label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.2rem;
+    }
+
+    /* Pipeline Mini View */
+    .mini-pipeline {
+        display: flex;
+        flex: 1;
+        justify-content: space-around;
+        gap: 0.5rem;
+        border-right: 1px solid var(--border-subtle);
+        padding-right: 1rem;
+        margin-right: 1rem;
+    }
+
+    .mini-stage {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .mini-stage-dot {
+        width: 10px; height: 10px; border-radius: 50%;
+    }
+    .mini-stage-count { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+    .mini-stage-name { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; }
+
+    /* Actions area */
+    .job-actions {
+        padding: 1rem 1.5rem;
+        background: var(--bg-body);
+        border-top: 1px solid var(--border-subtle);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .action-btn {
+        width: 36px; height: 36px;
+        border-radius: var(--radius-sm);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--text-muted);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        transition: all 0.2s ease;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .action-btn:hover {
+        background: var(--brand-blue);
+        color: white;
+        border-color: var(--brand-blue);
+        transform: scale(1.05);
+    }
+    
+    .action-btn.delete:hover { background: #dc3545; border-color: #dc3545; color: white;}
+    .action-btn.edit:hover { background: #ffc107; border-color: #ffc107; color: black;}
+
+    .btn-applications {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        border-radius: var(--radius-md);
+        background: var(--brand-blue-soft);
+        color: var(--brand-blue);
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-applications:hover {
+        background: var(--brand-blue);
+        color: white;
+    }
+
+    /* Modal styles */
+    .modal-content {
+        background: var(--bg-surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-soft);
+    }
+    
+    .modal-backdrop.show {
+        backdrop-filter: blur(5px);
+        opacity: 0.6;
+    }
+
+    /* Tooltip text */
+    [data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translate(-50%, -8px);
+        background: var(--text-main);
+        color: var(--bg-surface);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        z-index: 10;
+        pointer-events: none;
+    }
+</style>
+
+<!-- ── Page Header ── -->
+<div class="page-header animate-in">
+    <div class="page-header-inner">
+        <div>
+            <div class="page-eyebrow">
+                <i class="fas fa-briefcase"></i>
+                {% trans "إدارة الوظائف" %}
+            </div>
+            <h1 class="page-title">{% trans "الوظائف المتاحة" %}</h1>
+            <p class="page-subtitle">{% trans "إدارة وعرض كافة الفرص الوظيفية وإحصائياتها" %}</p>
+        </div>
+
+        {% if can_add_job %}
+        <a href="{% url 'jobs:add' %}" class="btn btn-primary btn-arrow">
+            <i class="fas fa-plus"></i>
+            {% trans "إضافة وظيفة" %}
+            <span class="btn-arrow-icon"><i class="fas fa-arrow-left"></i></span>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ── Filters Bar ── -->
+<form class="filters-bar animate-in" style="animation-delay: 0.1s" method="get">
+    <div class="filters-group">
+        <input type="text" name="q" class="filter-input" placeholder='{% trans "بحث باسم الوظيفة..." %}' value="{{ q }}">
+        
+        <select name="status" class="filter-input" onchange="this.form.submit()">
+            <option value="">{% trans "كل الحالات" %}</option>
+            <option value="open" {% if status_filter == 'open' %}selected{% endif %}>{% trans "نشطة" %}</option>
+            <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>{% trans "مغلقة" %}</option>
+        </select>
+        
+        <select name="department" class="filter-input" onchange="this.form.submit()">
+            <option value="">{% trans "كل الأقسام" %}</option>
+            {% for dept in departments %}
+            <option value="{{ dept }}" {% if department_filter == dept %}selected{% endif %}>{{ dept }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="location" class="filter-input" onchange="this.form.submit()">
+            <option value="">{% trans "كل المواقع" %}</option>
+            {% for loc in locations %}
+            <option value="{{ loc }}" {% if location_filter == loc %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div style="display: flex; gap: 0.5rem;">
+        <select name="sort" class="filter-input" onchange="this.form.submit()">
+            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>{% trans "الأحدث أولاً" %}</option>
+            <option value="most_applicants" {% if sort == 'most_applicants' %}selected{% endif %}>{% trans "الأكثر متقدمين" %}</option>
+        </select>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+        <a href="{% url 'jobs:list' %}" class="btn btn-outline" title='{% trans "إعادة ضبط" %}'><i class="fas fa-sync"></i></a>
+    </div>
+</form>
+
+<!-- ── Job Cards Grid ── -->
+<div class="grid-auto">
+    {% for item in jobs_with_stats %}
+    {% with job=item.job %}
+    <div class="job-card animate-in {% if job.status == 'closed' %}closed-job{% endif %}" style="animation-delay: {{ forloop.counter0|add:2|add:0|stringformat:'s'|slice:'0:1' }}00ms">
+        <div class="job-card-body">
+            <!-- Header: Title & Badges -->
+            <div class="job-header">
+                <div>
+                    <h3 class="job-title">{{ job.title }}</h3>
+                    <div class="job-meta">
+                        <span title='{% trans "الشركة" %}'><i class="fas fa-building"></i> {{ job.company.name }}</span>
+                        {% if job.location %}
+                        <span title='{% trans "الموقع" %}'><i class="fas fa-location-dot"></i> {{ job.location }}</span>
+                        {% endif %}
+                        {% if job.department %}
+                        <span title='{% trans "القسم" %}'><i class="fas fa-layer-group"></i> {{ job.department }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- Status Badge -->
+                {% if job.status == 'open' %}
+                    <span class="tag active"><i class="fas fa-circle" style="font-size: 0.5rem; margin-left: 4px;"></i> {% trans "نشطة" %}</span>
+                {% else %}
+                    <span class="tag closed"><i class="fas fa-lock" style="font-size: 0.6rem; margin-left: 4px;"></i> {% trans "مغلقة" %}</span>
+                {% endif %}
+            </div>
+
+            <!-- Tags (Type, Deadline) -->
+            <div class="job-tags">
+                <span class="tag type">{{ job.get_job_type_display }}</span>
+                {% if job.application_deadline %}
+                    <span class="tag {% if item.is_expired and job.status == 'open' %}closed{% endif %}" title='{% trans "الموعد النهائي" %}'>
+                        <i class="far fa-calendar-alt"></i> {{ job.application_deadline|date:"Y-m-d" }}
+                    </span>
+                {% endif %}
+                <span class="tag" title='{% trans "تم الإنشاء" %}'>
+                    <i class="fas fa-clock"></i> {{ job.created_at|timesince }} {% trans "مضت" %}
+                </span>
+            </div>
+
+            <!-- Stats & Pipeline -->
+            <div class="job-stats">
+                <div class="mini-pipeline">
+                    <!-- Top 3 stages logic -->
+                    {% for stage in stages|slice:":3" %}
+                    <div class="mini-stage">
+                        <div class="mini-stage-count">
+                            {% for key, val in item.stage_stats.items %}
+                                {% if key == stage.name %}{{ val }}{% endif %}
+                            {% empty %}0
+                            {% endfor %}
+                            {% if stage.name not in item.stage_stats %}0{% endif %}
+                        </div>
+                        <div class="mini-stage-name">{{ stage.name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="stat-main">
+                    <div class="number">{{ item.applicant_count }}</div>
+                    <div class="label">{% trans "متقدم" %}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Footer -->
+        <div class="job-actions">
+            <!-- Applications button -->
+            <a href="{% url 'jobs:applications' job.id %}" class="btn-applications">
+                <i class="fas fa-users"></i>
+                {% trans "الطلبات" %}
+            </a>
+
+            <!-- Icon actions -->
+            <div class="quick-actions">
+                <button class="action-btn" data-tooltip='{% trans "رابط التقديم" %}' onclick="showShareLink('{{ job.id }}', '{{ request.scheme }}://{{ request.get_host }}{% url 'jobs:public_apply' job.id %}')">
+                    <i class="fas fa-share-nodes"></i>
+                </button>
+                <button class="action-btn" data-tooltip='{% trans "الإحصائيات" %}' onclick="showAnalytics({{ job.id }})">
+                    <i class="fas fa-chart-line"></i>
+                </button>
+                
+                {% if can_add_job %}
+                <a href="{% url 'jobs:edit' job.id %}" class="action-btn edit" data-tooltip='{% trans "تعديل" %}'>
+                    <i class="fas fa-pen"></i>
+                </a>
+                {% if job.status == 'open' %}
+                <form action="{% url 'jobs:close' job.id %}" method="post" class="d-inline" onsubmit="return confirm('{% trans "هل أنت متأكد من إغلاق الوظيفة؟" %}');">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn delete" data-tooltip='{% trans "إغلاق الوظيفة" %}'>
+                        <i class="fas fa-lock"></i>
+                    </button>
+                </form>
+                {% else %}
+                <form action="{% url 'jobs:reopen' job.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn" data-tooltip='{% trans "إعادة فتح الوظيفة" %}' style="color:#198754">
+                        <i class="fas fa-unlock"></i>
+                    </button>
+                </form>
+                {% endif %}
+                {% endif %}
+                
+                <a href="{% url 'pipeline:board' %}?job_id={{ job.id }}" class="action-btn" data-tooltip='{% trans "عرض في التوظيف" %}'>
+                    <i class="fas fa-columns"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+    {% empty %}
+    <div style="grid-column: 1 / -1;">
+        <div class="card empty-state">
+            <div class="empty-state-icon"><i class="fas fa-briefcase"></i></div>
+            <h3>{% trans "لا توجد وظائف مطابقة" %}</h3>
+            <p>{% trans "لم يتم العثور على وظائف تطابق بحثك، أو لم تقم بإضافة أي وظائف بعد." %}</p>
+            {% if can_add_job %}
+            <a href="{% url 'jobs:add' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> {% trans "إضافة وظيفة جديدة" %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+<!-- ── Modals ── -->
+
+<!-- 1. Job Form Modal (Add / Edit) -->
+<div class="modal fade" id="jobFormModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="jobForm" method="post" action="{% url 'jobs:add' %}">
+                {% csrf_token %}
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title" id="jobFormTitle">{% trans "إضافة وظيفة جديدة" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body row">
+                    <div class="col-md-12 mb-3">
+                        {{ form.title|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.department|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.job_type|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.location|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.salary|as_crispy_field }}
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        {{ form.description|as_crispy_field }}
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        {{ form.required_skills|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.application_deadline|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">{% trans "إلغاء" %}</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-job">{% trans "حفظ الوظيفة" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Analytics Modal -->
+<div class="modal fade" id="analyticsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-chart-pie text-primary me-2"></i> 
+                    {% trans "إحصائيات الوظيفة:" %} <span id="analyticsJobTitle" class="text-primary"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded text-center border">
+                            <h3 id="analyticsTotalApps" class="text-primary mb-1">0</h3>
+                            <span class="text-muted small">{% trans "إجمالي الطلبات" %}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6 class="mb-3 text-muted">{% trans "التقديم خلال آخر 30 يوماً" %}</h6>
+                        <canvas id="dailyChart" height="200"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="mb-3 text-muted">{% trans "مراحل المرشحين" %}</h6>
+                        <canvas id="stageChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Share Link Modal -->
+<div class="modal fade" id="shareLinkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title">{% trans "مشاركة الوظيفة" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-muted mb-4">{% trans "يمكنك نسخ الرابط أدناه أو مسح رمز الاستجابة السريعة لمشاركته مع المرشحين." %}</p>
+                
+                <div id="qrcode" class="d-flex justify-content-center mb-4 p-3 bg-white rounded border d-inline-block mx-auto"></div>
+                
+                <div class="input-group mb-3">
+                    <input type="text" id="jobLinkInput" class="form-control bg-light" readonly>
+                    <button class="btn btn-primary" onclick="copyJobLink()" id="btnCopyLink">
+                        <i class="fas fa-copy"></i> {% trans "نسخ" %}
+                    </button>
+                    <a href="#" id="btnOpenLink" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Share Link Modal Logic
+    let qrcodeObj = null;
+    function showShareLink(jobId, url) {
+        document.getElementById('jobLinkInput').value = url;
+        document.getElementById('btnOpenLink').href = url;
+        
+        let qrContainer = document.getElementById('qrcode');
+        qrContainer.innerHTML = ''; // clear previous
+        qrcodeObj = new QRCode(qrContainer, {
+            text: url,
+            width: 150,
+            height: 150,
+            colorDark : "#0d6efd",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        
+        new bootstrap.Modal(document.getElementById('shareLinkModal')).show();
+    }
+
+    function copyJobLink() {
+        var copyText = document.getElementById("jobLinkInput");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // For mobile devices
+        navigator.clipboard.writeText(copyText.value);
+        
+        let btn = document.getElementById("btnCopyLink");
+        let originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> {% trans "تم النسخ!" %}';
+        btn.classList.replace('btn-primary', 'btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.replace('btn-success', 'btn-primary');
+        }, 2000);
+    }
+
+    // Add/Edit Job Modal Logic
+    function prepareAddJob() {
+        const form = document.getElementById('jobForm');
+        form.reset();
+        form.action = "{% url 'jobs:add' %}";
+        document.getElementById('jobFormTitle').innerText = '{% trans "إضافة وظيفة جديدة" %}';
+    }
+
+    function prepareEditJob(jobId) {
+        // Fetch job metadata
+        fetch(`/en/jobs/${jobId}/edit/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.json())
+            .then(data => {
+                const form = document.getElementById('jobForm');
+                form.action = `/en/jobs/${jobId}/edit/`;
+                document.getElementById('jobFormTitle').innerText = '{% trans "تعديل الوظيفة:" %} ' + data.title;
+                
+                document.getElementById('id_title').value = data.title;
+                document.getElementById('id_department').value = data.department;
+                document.getElementById('id_job_type').value = data.job_type;
+                document.getElementById('id_location').value = data.location;
+                document.getElementById('id_salary').value = data.salary;
+                document.getElementById('id_description').value = data.description;
+                document.getElementById('id_required_skills').value = data.required_skills;
+                document.getElementById('id_application_deadline').value = data.application_deadline;
+                document.getElementById('id_status').value = data.status;
+
+                new bootstrap.Modal(document.getElementById('jobFormModal')).show();
+            });
+    }
+
+    // Analytics Chart logic
+    let dailyChartObj = null;
+    let stageChartObj = null;
+
+    function showAnalytics(jobId) {
+        fetch(`/en/jobs/${jobId}/analytics/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('analyticsJobTitle').innerText = data.job_title;
+                document.getElementById('analyticsTotalApps').innerText = data.total;
+
+                // Render Day Chart
+                const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+                if (dailyChartObj) dailyChartObj.destroy();
+                dailyChartObj = new Chart(dailyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: data.daily_labels.map(l => l.substring(5)), // show mm-dd
+                        datasets: [{
+                            label: '{% trans "الطلبات" %}',
+                            data: data.daily_data,
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} } }
+                });
+
+                // Render Stage Chart
+                const stageCtx = document.getElementById('stageChart').getContext('2d');
+                if (stageChartObj) stageChartObj.destroy();
+                stageChartObj = new Chart(stageCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.stage_labels,
+                        datasets: [{
+                            data: data.stage_data,
+                            backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d', '#0dcaf0']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                new bootstrap.Modal(document.getElementById('analyticsModal')).show();
+            });
+    }
+</script>
+
+{% endblock %}

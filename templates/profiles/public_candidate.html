@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} — Profile{% endblock %}
+
+{% block sidebar %}{% endblock %}
+{% block main_margin %}margin: 0; width: 100%;{% endblock %}
+
+{% block extra_css %}
+<style>
+.pub-hero        { background:var(--bg-surface-2); border-bottom:1px solid var(--border-subtle); padding:60px 0 40px; }
+.pub-container   { max-width:860px; margin:0 auto; padding:0 20px; }
+.pub-hero-inner  { display:flex; align-items:flex-start; gap:32px; }
+.pub-avatar      { width:120px; height:120px; border-radius:50%; object-fit:cover; border:4px solid var(--accent-gold); flex-shrink:0; }
+.pub-avatar-def  { width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg,var(--accent-gold),#d97706); display:flex; align-items:center; justify-content:center; font-size:44px; font-weight:700; color:#0d0f18; flex-shrink:0; }
+.pub-hero-info   { flex:1; }
+.pub-name        { font-size:28px; font-weight:800; color:var(--text-main); margin-bottom:6px; }
+.pub-title       { font-size:15px; color:var(--accent-gold); margin-bottom:10px; font-weight:600; }
+.pub-meta        { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+.pub-meta-item   { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-muted); }
+.pub-meta-item i { color:var(--accent-gold); }
+.pub-links       { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.pub-link-btn    { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; font-size:12px; font-weight:600; text-decoration:none; border:1px solid var(--border-subtle); color:var(--text-body); background:var(--bg-surface); transition:.2s; }
+.pub-link-btn:hover{ border-color:var(--accent-gold); color:var(--accent-gold); }
+.pub-action-btns { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+.pub-btn-cv      { display:inline-flex; align-items:center; gap:7px; padding:10px 22px; border-radius:8px; background:linear-gradient(135deg,var(--accent-gold),#d97706); color:#0d0f18; font-weight:700; font-size:13px; text-decoration:none; border:none; cursor:pointer; }
+.pub-btn-share   { display:inline-flex; align-items:center; gap:7px; padding:10px 22px; border-radius:8px; background:transparent; color:var(--accent-gold); font-weight:600; font-size:13px; border:1px solid var(--accent-gold-soft); cursor:pointer; }
+.pub-btn-share:hover{ background:var(--accent-gold-soft); }
+
+/* Body */
+.pub-body        { padding:36px 0; background:var(--bg-main); }
+.pub-section     { background:var(--bg-surface); border:1px solid var(--border-subtle); border-radius:14px; padding:24px; margin-bottom:20px; box-shadow:var(--card-shadow); }
+.pub-sec-title   { font-size:14px; font-weight:700; color:var(--accent-gold); text-transform:uppercase; letter-spacing:.6px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.pub-bio         { font-size:14px; color:var(--text-body); line-height:1.8; }
+.pub-skills      { display:flex; flex-wrap:wrap; gap:8px; }
+.pub-skill       { background:var(--accent-gold-soft); border:1px solid rgba(232,184,75,.3); color:var(--accent-gold); padding:5px 14px; border-radius:999px; font-size:12px; font-weight:600; }
+
+/* Experience badge */
+.exp-badge       { display:inline-flex; align-items:center; gap:8px; background:var(--brand-blue-soft); border:1px solid var(--brand-blue-xsoft); color:var(--brand-blue); padding:10px 18px; border-radius:10px; font-size:14px; font-weight:600; }
+
+/* Share toast */
+.share-toast     { position:fixed; bottom:24px; right:24px; background:var(--bg-surface); border:1px solid var(--accent-gold-soft); color:var(--accent-gold); padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; transform:translateY(80px); opacity:0; transition:.35s; z-index:999; box-shadow:var(--card-shadow); }
+.share-toast.show{ transform:translateY(0); opacity:1; }
+
+@media(max-width:600px){
+  .pub-hero-inner{ flex-direction:column; align-items:center; text-align:center; }
+  .pub-meta, .pub-links, .pub-action-btns { justify-content:center; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="pub-hero">
+  <div class="pub-container">
+    <div class="pub-hero-inner">
+
+      {% if profile_user.avatar %}
+        <img src="{{ profile_user.avatar.url }}" class="pub-avatar" alt="{{ profile_user.get_full_name }}">
+      {% else %}
+        <div class="pub-avatar-def">{{ profile_user.username|slice:":1"|upper }}</div>
+      {% endif %}
+
+      <div class="pub-hero-info">
+        <div class="pub-name">{{ profile_user.get_full_name|default:profile_user.username }}</div>
+
+        {% if candidate and candidate.current_title %}
+        <div class="pub-title">{{ candidate.current_title }}</div>
+        {% endif %}
+
+        <div class="pub-meta">
+          {% if profile_user.location %}
+          <span class="pub-meta-item"><i class="fas fa-location-dot"></i> {{ profile_user.location }}</span>
+          {% endif %}
+          {% if candidate and candidate.years_of_experience %}
+          <span class="pub-meta-item"><i class="fas fa-clock"></i> {{ candidate.years_of_experience }} years experience</span>
+          {% endif %}
+          {% if candidate and candidate.availability %}
+          <span class="pub-meta-item"><i class="fas fa-calendar-check"></i> {{ candidate.availability }}</span>
+          {% endif %}
+        </div>
+
+        <!-- External Links -->
+        <div class="pub-links">
+          {% if candidate and candidate.linkedin_url %}
+          <a href="{{ candidate.linkedin_url }}" target="_blank" class="pub-link-btn">
+            <i class="fab fa-linkedin" style="color:#0a66c2;"></i> LinkedIn
+          </a>
+          {% endif %}
+          {% if candidate and candidate.github_url %}
+          <a href="{{ candidate.github_url }}" target="_blank" class="pub-link-btn">
+            <i class="fab fa-github"></i> GitHub
+          </a>
+          {% endif %}
+          {% if candidate and candidate.portfolio_url %}
+          <a href="{{ candidate.portfolio_url }}" target="_blank" class="pub-link-btn">
+            <i class="fas fa-globe" style="color:#3b82f6;"></i> Portfolio
+          </a>
+          {% endif %}
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="pub-action-btns">
+          {% if candidate and candidate.cv_file %}
+          <a href="{{ candidate.cv_file.url }}" target="_blank" class="pub-btn-cv">
+            <i class="fas fa-download"></i> Download CV
+          </a>
+          {% endif %}
+          <button class="pub-btn-share" onclick="shareProfile()">
+            <i class="fas fa-share-nodes"></i> Share Profile
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="pub-body">
+  <div class="pub-container">
+
+    {% if profile_user.bio or candidate.bio %}
+    <div class="pub-section">
+      <div class="pub-sec-title"><i class="fas fa-user"></i> About</div>
+      <p class="pub-bio">{{ profile_user.bio|default:candidate.bio }}</p>
+    </div>
+    {% endif %}
+
+    {% if skills %}
+    <div class="pub-section">
+      <div class="pub-sec-title"><i class="fas fa-code"></i> Skills</div>
+      <div class="pub-skills">
+        {% for skill in skills %}
+        <span class="pub-skill">{{ skill }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if candidate %}
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+
+      {% if candidate.years_of_experience %}
+      <div class="pub-section" style="display:flex; align-items:center; gap:12px;">
+        <div class="exp-badge">
+          <i class="fas fa-briefcase"></i>
+          {{ candidate.years_of_experience }}+ years
+        </div>
+        <div style="color:#64748b; font-size:13px;">Years of Experience</div>
+      </div>
+      {% endif %}
+
+      {% if candidate.expected_salary %}
+      <div class="pub-section">
+        <div class="pub-sec-title"><i class="fas fa-dollar-sign"></i> Expected Salary</div>
+        <div style="font-size:16px; font-weight:700; color:#e2e8f0;">{{ candidate.expected_salary }}</div>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="share-toast" id="shareToast">🔗 Link copied to clipboard!</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function shareProfile() {
+  var url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(showToast);
+  } else {
+    var el = document.createElement('textarea');
+    el.value = url; document.body.appendChild(el); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+    showToast();
+  }
+}
+
+function showToast() {
+  var t = document.getElementById('shareToast');
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+</script>
+{% endblock %}

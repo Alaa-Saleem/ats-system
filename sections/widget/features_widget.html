@@ -1,0 +1,239 @@
+<!-- ═══ FEATURES SECTION – WordPress Custom HTML Widget ═══ -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+<style>
+    .wg-features {
+        padding: 120px 0;
+        background: #f3efe9;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .wg-features .wg-container {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    .wg-sec-header {
+        text-align: center;
+        max-width: 620px;
+        margin: 0 auto 72px;
+    }
+
+    .wg-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #c79d6a;
+        font-size: .78rem;
+        letter-spacing: .2em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        font-weight: 600;
+    }
+
+    .wg-eyebrow::before,
+    .wg-eyebrow::after {
+        content: '';
+        width: 24px;
+        height: 1px;
+        background: #c79d6a;
+        opacity: .4;
+    }
+
+    .wg-sec-header h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        color: #343861;
+        margin-bottom: 16px;
+        letter-spacing: -.02em;
+        line-height: 1.2;
+    }
+
+    .wg-sec-header p {
+        color: #6b6b80;
+        font-size: 1.05rem;
+        line-height: 1.7
+    }
+
+    .wg-features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+
+    .wg-feature-card {
+        background: #fff;
+        padding: 40px 32px;
+        border-radius: 16px;
+        border: 1px solid #e8e2d9;
+        transition: .4s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .wg-feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #c79d6a;
+        transform: scaleX(0);
+        transition: transform .4s;
+    }
+
+    .wg-feature-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 48px rgba(52, 56, 97, .1);
+        border-color: transparent
+    }
+
+    .wg-feature-card:hover::before {
+        transform: scaleX(1)
+    }
+
+    .wg-feature-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: rgba(199, 157, 106, .08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        color: #c79d6a;
+        transition: .4s;
+    }
+
+    .wg-feature-icon svg {
+        width: 26px;
+        height: 26px
+    }
+
+    .wg-feature-card:hover .wg-feature-icon {
+        background: #c79d6a;
+        color: #fff
+    }
+
+    .wg-feature-card h3 {
+        font-size: 1.15rem;
+        color: #343861;
+        margin-bottom: 12px;
+        font-weight: 700;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .wg-feature-card p {
+        color: #6b6b80;
+        line-height: 1.7;
+        font-size: .9rem
+    }
+
+    @media(max-width:1024px) {
+        .wg-features-grid {
+            grid-template-columns: repeat(2, 1fr)
+        }
+    }
+
+    @media(max-width:768px) {
+        .wg-features-grid {
+            grid-template-columns: 1fr
+        }
+
+        .wg-sec-header h2 {
+            font-size: 2rem
+        }
+
+        .wg-features {
+            padding: 80px 0
+        }
+    }
+</style>
+
+<section class="wg-features" id="features">
+    <div class="wg-container">
+        <div class="wg-sec-header">
+            <div class="wg-eyebrow">Amenities</div>
+            <h2>Premium Features & Amenities</h2>
+            <p>Every detail is crafted to deliver an exceptional living experience that exceeds expectations.</p>
+        </div>
+        <div class="wg-features-grid">
+            <div class="wg-feature-card">
+                <div class="wg-feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                </div>
+                <h3>24/7 Security</h3>
+                <p>State-of-the-art surveillance and professional security personnel ensuring safety and peace of mind
+                    for all residents.</p>
+            </div>
+            <div class="wg-feature-card">
+                <div class="wg-feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="1" y="6" width="22" height="12" rx="2"></rect>
+                        <path d="M1 10h22"></path>
+                    </svg>
+                </div>
+                <h3>Modern Apartments</h3>
+                <p>Spacious units featuring contemporary design with luxurious finishes and premium materials.</p>
+            </div>
+            <div class="wg-feature-card">
+                <div class="wg-feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                        <line x1="6" y1="1" x2="6" y2="4"></line>
+                        <line x1="10" y1="1" x2="10" y2="4"></line>
+                        <line x1="14" y1="1" x2="14" y2="4"></line>
+                    </svg>
+                </div>
+                <h3>Wellness Center</h3>
+                <p>Fully-equipped fitness center and spa facilities to support your health and well-being.</p>
+            </div>
+            <div class="wg-feature-card">
+                <div class="wg-feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                </div>
+                <h3>Swimming Pool</h3>
+                <p>A stunning pool area designed for both leisure relaxation and fitness activities.</p>
+            </div>
+            <div class="wg-feature-card">
+                <div class="wg-feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <h3>Community Spaces</h3>
+                <p>Beautifully landscaped gardens and gathering areas for residents to connect and unwind.</p>
+            </div>
+            <div class="wg-feature-card">
+                <div class="wg-feature-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                        </path>
+                    </svg>
+                </div>
+                <h3>Children's Play Areas</h3>
+                <p>Safe, thoughtfully designed spaces for children to play, explore, and grow with joy.</p>
+            </div>
+        </div>
+    </div>
+</section>

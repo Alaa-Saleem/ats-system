@@ -1,0 +1,107 @@
+{% extends "superadmin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Candidates" %}{% endblock %}
+{% block page_title %}{% trans "Candidates Management" %}{% endblock %}
+{% block page_subtitle %}{{ page_obj.paginator.count }} {% trans "candidates total" %}{% endblock %}
+
+{% block content %}
+
+<div class="sa-panel">
+
+  <form method="get" class="sa-filters">
+    <i class="fas fa-search" style="color:var(--sa-text-muted);"></i>
+    <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Search name, email or phone…' %}" class="sa-filter-input" style="min-width:240px;">
+
+    <select name="company" class="sa-filter-select" onchange="this.form.submit()">
+      <option value="">{% trans "All Companies" %}</option>
+      {% for c in companies %}
+      <option value="{{ c.pk }}" {% if company_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.company_name }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="sa-btn sa-btn-primary sa-btn-sm">{% trans "Filter" %}</button>
+    {% if q or company_filter %}<a href="{% url 'superadmin:candidates_list' %}" class="sa-btn sa-btn-ghost sa-btn-sm">{% trans "Clear" %}</a>{% endif %}
+
+    <div class="sa-bulk-sel">
+      <span class="sa-fs-sm sa-text-muted"><span id="saBulkCount">0</span> {% trans "selected" %}</span>
+      <button type="button" onclick="saSubmitBulk('soft_delete')" class="sa-btn sa-btn-danger sa-btn-sm">
+        <i class="fas fa-trash"></i> {% trans "Delete Selected" %}
+      </button>
+    </div>
+  </form>
+
+  <form id="saBulkForm" action="{% url 'superadmin:bulk_action' %}" method="post" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="model" value="candidate">
+    <input type="hidden" name="action" value="">
+  </form>
+
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead>
+        <tr>
+          <th class="check-col"><input type="checkbox" class="sa-checkbox" onchange="saToggleAll(this)"></th>
+          <th>{% trans "Name" %}</th>
+          <th>{% trans "Contact" %}</th>
+          <th>{% trans "Title" %}</th>
+          <th>{% trans "Experience" %}</th>
+          <th>{% trans "Location" %}</th>
+          <th>{% trans "Company" %}</th>
+          <th>{% trans "Applications" %}</th>
+          <th style="text-align:end;">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in page_obj %}
+        <tr>
+          <td><input type="checkbox" class="sa-checkbox sa-row-check" value="{{ c.pk }}"></td>
+          <td>
+            <a href="{% url 'superadmin:candidate_detail' c.pk %}" style="color:var(--sa-text);font-weight:600;text-decoration:none;">
+              {{ c.full_name }}
+            </a>
+          </td>
+          <td>
+            <div>{{ c.email|default:"—" }}</div>
+            <div class="sa-fs-sm sa-text-muted">{{ c.phone }}</div>
+          </td>
+          <td class="muted">{{ c.current_title|default:"—" }}</td>
+          <td class="muted">
+            {% if c.years_of_experience %}{{ c.years_of_experience }} {% trans "yrs" %}{% else %}—{% endif %}
+          </td>
+          <td class="muted">{{ c.location|default:"—" }}</td>
+          <td class="muted">{{ c.company.company_name|default:"—" }}</td>
+          <td>
+            <span class="sa-badge {% if c.app_count > 0 %}gold{% else %}disabled{% endif %}">{{ c.app_count }}</span>
+          </td>
+          <td>
+            <div class="sa-flex" style="justify-content:flex-end;">
+              <a href="{% url 'superadmin:candidate_detail' c.pk %}" class="sa-btn sa-btn-ghost sa-btn-icon" title="{% trans 'View' %}"><i class="fas fa-eye"></i></a>
+              {% if c.cv_file %}
+              <a href="{{ c.cv_file.url }}" target="_blank" class="sa-btn sa-btn-blue sa-btn-icon" title="{% trans 'Download CV' %}"><i class="fas fa-download"></i></a>
+              {% endif %}
+              <form method="post" action="{% url 'superadmin:candidate_delete' c.pk %}" style="display:inline;" onsubmit="return confirm('{% trans "Move to Trash?" %}')">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-danger sa-btn-icon" title="{% trans 'Delete' %}"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9"><div class="sa-empty"><div class="sa-empty-icon"><i class="fas fa-user-tie"></i></div><div class="sa-empty-title">{% trans "No candidates found" %}</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="sa-pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&company={{ company_filter }}" class="sa-page-link"><i class="fas fa-chevron-left"></i></a>{% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <a href="?page={{ num }}&q={{ q }}&company={{ company_filter }}" class="sa-page-link {% if num == page_obj.number %}current{% endif %}">{{ num }}</a>
+    {% endfor %}
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&q={{ q }}&company={{ company_filter }}" class="sa-page-link"><i class="fas fa-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

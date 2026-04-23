@@ -1,0 +1,242 @@
+<!-- ═══ FAQ SECTION – WordPress Custom HTML Widget ═══ -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+<style>
+    .wg-faq {
+        padding: 120px 0;
+        background: #f3efe9;
+        font-family: 'Inter', sans-serif
+    }
+
+    .wg-faq .wg-container {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 24px
+    }
+
+    .wg-faq .wg-sec-header {
+        text-align: center;
+        max-width: 620px;
+        margin: 0 auto 72px
+    }
+
+    .wg-faq .wg-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #c79d6a;
+        font-size: .78rem;
+        letter-spacing: .2em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        font-weight: 600
+    }
+
+    .wg-faq .wg-eyebrow::before,
+    .wg-faq .wg-eyebrow::after {
+        content: '';
+        width: 24px;
+        height: 1px;
+        background: #c79d6a;
+        opacity: .4
+    }
+
+    .wg-faq .wg-sec-header h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        color: #343861;
+        margin-bottom: 16px;
+        letter-spacing: -.02em;
+        line-height: 1.2
+    }
+
+    .wg-faq .wg-sec-header p {
+        color: #6b6b80;
+        font-size: 1.05rem;
+        line-height: 1.7
+    }
+
+    .wg-faq-list {
+        max-width: 720px;
+        margin: 0 auto
+    }
+
+    .wg-faq-item {
+        background: #fff;
+        border: 1px solid #e8e2d9;
+        border-radius: 16px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        transition: .4s
+    }
+
+    .wg-faq-item:hover {
+        border-color: rgba(199, 157, 106, .3)
+    }
+
+    .wg-faq-item.active {
+        border-color: #c79d6a
+    }
+
+    .wg-faq-q {
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 24px 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        text-align: left;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #343861;
+        gap: 16px;
+    }
+
+    .wg-faq-arrow {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        border-radius: 50%;
+        background: #f3efe9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: .4s;
+        color: #6b6b80
+    }
+
+    .wg-faq-arrow svg {
+        width: 14px;
+        height: 14px;
+        transition: transform .3s
+    }
+
+    .wg-faq-item.active .wg-faq-arrow {
+        background: #c79d6a;
+    }
+
+    .wg-faq-item.active .wg-faq-arrow svg {
+        transform: rotate(180deg)
+    }
+
+    .wg-faq-a {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .4s ease
+    }
+
+    .wg-faq-a p {
+        padding: 0 28px 24px;
+        color: #6b6b80;
+        line-height: 1.8;
+        font-size: .92rem
+    }
+
+    @media(max-width:768px) {
+        .wg-faq .wg-sec-header h2 {
+            font-size: 2rem
+        }
+
+        .wg-faq {
+            padding: 80px 0
+        }
+    }
+</style>
+
+<section class="wg-faq" id="faq">
+    <div class="wg-container">
+        <div class="wg-sec-header">
+            <div class="wg-eyebrow">Support</div>
+            <h2>Frequently Asked Questions</h2>
+            <p>Find answers to common questions about Anwer Alosaimi Compound.</p>
+        </div>
+        <div class="wg-faq-list">
+            <div class="wg-faq-item">
+                <button class="wg-faq-q" onclick="wgToggleFaq(this)">
+                    What is the starting price of the apartments?
+                    <span class="wg-faq-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg></span>
+                </button>
+                <div class="wg-faq-a">
+                    <p>Our apartments start at competitive market prices. Please contact our sales team for the most
+                        up-to-date pricing and available units.</p>
+                </div>
+            </div>
+            <div class="wg-faq-item">
+                <button class="wg-faq-q" onclick="wgToggleFaq(this)">
+                    What are the payment options available?
+                    <span class="wg-faq-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg></span>
+                </button>
+                <div class="wg-faq-a">
+                    <p>We offer flexible payment plans including installments, bank financing options, and full payment
+                        discounts. Our team will guide you through the best option for your needs.</p>
+                </div>
+            </div>
+            <div class="wg-faq-item">
+                <button class="wg-faq-q" onclick="wgToggleFaq(this)">
+                    Is the compound pet-friendly?
+                    <span class="wg-faq-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg></span>
+                </button>
+                <div class="wg-faq-a">
+                    <p>Yes, Anwer Alosaimi Compound is pet-friendly with designated areas for pets within the community
+                        green spaces.</p>
+                </div>
+            </div>
+            <div class="wg-faq-item">
+                <button class="wg-faq-q" onclick="wgToggleFaq(this)">
+                    What amenities are included in the apartments?
+                    <span class="wg-faq-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg></span>
+                </button>
+                <div class="wg-faq-a">
+                    <p>Every apartment comes with modern finishes, central air conditioning, fitted kitchen, and access
+                        to all compound amenities including the pool, gym, gardens, and children's play areas.</p>
+                </div>
+            </div>
+            <div class="wg-faq-item">
+                <button class="wg-faq-q" onclick="wgToggleFaq(this)">
+                    Are there any financing options available?
+                    <span class="wg-faq-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg></span>
+                </button>
+                <div class="wg-faq-a">
+                    <p>Yes, we partner with leading banks to offer attractive financing solutions with competitive
+                        interest rates and flexible terms.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    function wgToggleFaq(btn) {
+        var item = btn.parentElement;
+        var answer = item.querySelector('.wg-faq-a');
+        var isActive = item.classList.contains('active');
+        document.querySelectorAll('.wg-faq-item').forEach(function (el) {
+            el.classList.remove('active');
+            el.querySelector('.wg-faq-a').style.maxHeight = '0';
+        });
+        if (!isActive) {
+            item.classList.add('active');
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+        }
+    }
+</script>

@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}تصفح الوظائف{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Job Browse Grid ── */
+.browse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+
+.job-browse-card {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    transition: var(--transition);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.job-browse-card:hover {
+    border-color: var(--brand-blue);
+    box-shadow: 0 8px 28px rgba(27,117,188,0.12);
+    transform: translateY(-3px);
+}
+.job-browse-card.applied-card {
+    border-color: rgba(16,185,129,0.3);
+    background: linear-gradient(135deg, var(--bg-surface), rgba(16,185,129,0.03));
+}
+
+/* Badges */
+.card-badge {
+    position: absolute;
+    top: 14px;
+    inset-inline-end: 14px;
+    display: flex;
+    gap: 6px;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.badge-new {
+    background: rgba(59,130,246,0.15);
+    color: var(--brand-blue);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.5px;
+}
+.badge-urgent {
+    background: rgba(239,68,68,0.12);
+    color: var(--danger);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 999px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+.badge-applied {
+    background: rgba(16,185,129,0.12);
+    color: var(--success);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 999px;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Company Avatar */
+.company-avatar {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--brand-blue-soft);
+    color: var(--brand-blue);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.job-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.3;
+}
+.job-meta {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.job-meta span { display: flex; align-items: center; gap: 4px; }
+
+.salary-tag {
+    font-weight: 800;
+    color: var(--accent-gold);
+    background: var(--accent-gold-soft);
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.deadline-tag {
+    font-size: 0.78rem;
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+}
+
+/* Quick filter tabs */
+.browse-filters {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    box-shadow: var(--card-shadow);
+}
+.filter-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    min-width: 160px;
+}
+.filter-field label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.filter-field input,
+.filter-field select {
+    padding: 9px 12px;
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface-2);
+    color: var(--text-main);
+    font-size: 0.88rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+.filter-field input:focus,
+.filter-field select:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px var(--brand-blue-soft);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Page Header ── -->
+<div class="page-header animate-in">
+    <div>
+        <div class="page-eyebrow">
+            <i class="fas fa-search"></i>
+            {% trans "الوظائف المتاحة" %}
+        </div>
+        <h1 class="page-title">{% trans "اعثر على وظيفتك المثالية" %}</h1>
+        <p class="page-subtitle">{{ jobs|length }} {% trans "وظيفة متاحة الآن — قدّم بنقرة واحدة" %}</p>
+    </div>
+    <a href="{% url 'dashboard:my_applications' %}" class="btn btn-secondary">
+        <i class="fas fa-paper-plane"></i>
+        {% trans "طلباتي" %}
+    </a>
+</div>
+
+<!-- ── Filters ── -->
+<div class="browse-filters animate-in">
+    <form method="GET" action="">
+        <div class="filter-row">
+            <div class="filter-field" style="flex:2; min-width:220px;">
+                <label>{% trans "البحث" %}</label>
+                <input type="text" name="q" value="{{ q }}"
+                       placeholder="{% trans 'اسم الوظيفة أو الشركة...' %}">
+            </div>
+            <div class="filter-field">
+                <label>{% trans "الموقع" %}</label>
+                <select name="location">
+                    <option value="">{% trans "كل المواقع" %}</option>
+                    {% for loc in locations %}
+                    <option value="{{ loc }}" {% if loc == location_filter %}selected{% endif %}>{{ loc }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-field">
+                <label>{% trans "نوع الوظيفة" %}</label>
+                <select name="job_type">
+                    <option value="">{% trans "الكل" %}</option>
+                    {% for jt in job_types_list %}
+                    <option value="{{ jt }}" {% if jt == job_type_filter %}selected{% endif %}>{{ jt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-field">
+                <label>{% trans "الترتيب" %}</label>
+                <select name="sort">
+                    <option value="newest" {% if sort_filter == 'newest' %}selected{% endif %}>{% trans "الأحدث" %}</option>
+                    <option value="salary_high" {% if sort_filter == 'salary_high' %}selected{% endif %}>{% trans "الأعلى راتباً" %}</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:8px; align-self:flex-end;">
+                <button type="submit" class="btn btn-primary" style="white-space:nowrap;">
+                    <i class="fas fa-search"></i> {% trans "بحث" %}
+                </button>
+                <a href="{% url 'jobs:browse' %}" class="btn btn-secondary" style="white-space:nowrap;">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- ── Jobs Grid ── -->
+{% if jobs %}
+<div class="browse-grid">
+{% for job in jobs %}
+<div class="job-browse-card {% if job.id in applied_job_ids %}applied-card{% endif %}">
+
+    <!-- Badges -->
+    <div class="card-badge">
+        {% if job.id in applied_job_ids %}
+        <span class="badge-applied"><i class="fas fa-check-circle"></i> تقدمت</span>
+        {% endif %}
+        {% if job.created_at >= new_date %}
+        <span class="badge-new">✨ جديد</span>
+        {% endif %}
+        {% if job.application_deadline and job.application_deadline <= urgent_date and job.application_deadline >= today_date %}
+        <span class="badge-urgent">🔥 عاجل</span>
+        {% endif %}
+    </div>
+
+    <!-- Company + Title -->
+    <div style="display:flex; gap:12px; align-items:flex-start; padding-inline-end: 60px;">
+        <div class="company-avatar">{{ job.company.company_name|slice:":1"|upper }}</div>
+        <div>
+            <div class="job-title">{{ job.title }}</div>
+            <div style="font-size:0.85rem; color:var(--text-muted); margin-top:3px;">{{ job.company.company_name }}</div>
+        </div>
+    </div>
+
+    <!-- Meta -->
+    <div class="job-meta">
+        {% if job.location %}
+        <span><i class="fas fa-map-marker-alt"></i> {{ job.location }}</span>
+        {% endif %}
+        {% if job.job_type %}
+        <span><i class="fas fa-briefcase"></i> {{ job.job_type }}</span>
+        {% endif %}
+        {% if job.department %}
+        <span><i class="fas fa-building"></i> {{ job.department }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Salary -->
+    {% if job.salary %}
+    <div>
+        <span class="salary-tag">
+            <i class="fas fa-coins"></i>
+            ${{ job.salary }} / month
+        </span>
+    </div>
+    {% endif %}
+
+    <!-- Deadline -->
+    {% if job.application_deadline %}
+    <div class="deadline-tag">
+        <i class="fas fa-clock"></i>
+        {% trans "ينتهي:" %} {{ job.application_deadline|date:"d M Y" }}
+        {% if job.application_deadline == today_date %}
+        — <strong>{% trans "آخر يوم!" %}</strong>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Description Preview -->
+    {% if job.description %}
+    <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.6; margin:0;">
+        {{ job.description|truncatechars:120 }}
+    </p>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="card-actions">
+        {% if job.id in applied_job_ids %}
+        <button class="btn btn-secondary btn-sm" disabled style="flex:1; opacity:0.6;">
+            <i class="fas fa-check"></i> {% trans "تم التقديم" %}
+        </button>
+        {% else %}
+        <a href="{% url 'jobs:easy_apply' job.id %}" class="btn btn-primary btn-sm" style="flex:1;">
+            <i class="fas fa-bolt"></i> {% trans "تقديم سريع" %}
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state" style="padding: 80px 0;">
+    <div class="empty-state-icon"><i class="fas fa-search"></i></div>
+    <h3>{% trans "لا توجد وظائف تطابق بحثك" %}</h3>
+    <p>{% trans "جرب تغيير معايير البحث أو تصفح جميع الوظائف." %}</p>
+    <a href="{% url 'jobs:browse' %}" class="btn btn-secondary" style="margin-top:20px;">
+        <i class="fas fa-refresh"></i> {% trans "إعادة تعيين" %}
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

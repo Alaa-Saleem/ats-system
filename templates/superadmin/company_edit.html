@@ -1,0 +1,66 @@
+{% extends "superadmin/base.html" %}
+{% load i18n %}
+{% block title %}{% blocktrans with company_name=company.company_name %}Edit {{ company_name }}{% endblocktrans %}{% endblock %}
+{% block page_title %}{% trans "Edit Company" %}{% endblock %}
+{% block page_subtitle %}{{ company.company_name }}{% endblock %}
+
+{% block content %}
+
+<div class="sa-page-header">
+  <a href="{% url 'superadmin:company_detail' company.pk %}" class="sa-btn sa-btn-ghost sa-btn-sm">
+    <i class="fas fa-arrow-left"></i> {% trans "Back" %}
+  </a>
+</div>
+
+<div class="sa-panel" style="max-width:680px;">
+  <div class="sa-panel-header">
+    <i class="fas fa-pen sa-text-gold"></i>
+    <span class="sa-panel-title">{% trans "Edit Company Information" %}</span>
+  </div>
+  <div class="sa-panel-body">
+    <form method="post" action="{% url 'superadmin:company_edit' company.pk %}">
+      {% csrf_token %}
+
+      <div class="sa-grid-2">
+        <div class="sa-form-group">
+          <label class="sa-label">{% trans "Company Name" %} *</label>
+          <input class="sa-input" type="text" name="company_name" value="{{ company.company_name }}" required>
+        </div>
+        <div class="sa-form-group">
+          <label class="sa-label">{% trans "Industry" %}</label>
+          <input class="sa-input" type="text" name="industry" value="{{ company.industry }}">
+        </div>
+      </div>
+
+      <div class="sa-grid-2">
+        <div class="sa-form-group">
+          <label class="sa-label">{% trans "Location" %}</label>
+          <input class="sa-input" type="text" name="location" value="{{ company.location }}">
+        </div>
+        <div class="sa-form-group">
+          <label class="sa-label">{% trans "Phone" %}</label>
+          <input class="sa-input" type="text" name="phone" value="{{ company.phone }}">
+        </div>
+      </div>
+
+      <div class="sa-form-group">
+        <label class="sa-label">{% trans "Website" %}</label>
+        <input class="sa-input" type="url" name="website" value="{{ company.website|default:'' }}">
+      </div>
+
+      <div class="sa-form-group">
+        <label class="sa-label">{% trans "Description" %}</label>
+        <textarea class="sa-textarea" name="description">{{ company.description }}</textarea>
+      </div>
+
+      <div class="sa-flex" style="gap:10px; justify-content:flex-end; margin-top:8px;">
+        <a href="{% url 'superadmin:company_detail' company.pk %}" class="sa-btn sa-btn-ghost">{% trans "Cancel" %}</a>
+        <button type="submit" class="sa-btn sa-btn-primary">
+          <i class="fas fa-save"></i> {% trans "Save Changes" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

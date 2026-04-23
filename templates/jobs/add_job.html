@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% if job %}تعديل وظيفة{% else %}نشر وظيفة جديدة{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.job-form-container { max-width: 800px; margin: 0 auto; }
+
+.form-section {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    margin-bottom: 20px;
+    box-shadow: var(--card-shadow);
+}
+.form-section-title {
+    font-size: 0.95rem; font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--border-subtle);
+    display: flex; align-items: center; gap: 8px;
+}
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:600px){ .field-row { grid-template-columns: 1fr; } }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-group label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.form-control {
+    padding: 10px 13px;
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface-2);
+    color: var(--text-main);
+    font-size: 0.9rem; font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+}
+.form-control:focus { outline: none; border-color: var(--brand-blue); box-shadow: 0 0 0 3px var(--brand-blue-soft); }
+textarea.form-control { resize: vertical; min-height: 90px; }
+
+/* ── Custom Fields Builder ── */
+#custom-fields-list { display: flex; flex-direction: column; gap: 12px; }
+
+.custom-field-item {
+    background: var(--bg-surface-2);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    position: relative;
+    transition: border-color 0.2s;
+}
+.custom-field-item:hover { border-color: var(--brand-blue); }
+
+.custom-field-item .field-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px;
+}
+.drag-handle {
+    cursor: grab; color: var(--text-muted); font-size: 1rem;
+    padding: 2px 4px; border-radius: 4px;
+}
+.drag-handle:active { cursor: grabbing; }
+
+.field-type-badge {
+    font-size: 0.7rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px;
+    background: var(--brand-blue-soft); color: var(--brand-blue);
+}
+
+.remove-field-btn {
+    position: absolute; top: 10px; inset-inline-end: 12px;
+    background: none; border: none;
+    color: var(--text-muted); cursor: pointer; font-size: 1rem;
+    border-radius: 6px; padding: 3px 6px;
+    transition: color 0.2s, background 0.2s;
+}
+.remove-field-btn:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
+
+.field-grid { display: grid; grid-template-columns: 1fr auto 120px; gap: 10px; align-items: start; }
+@media(max-width:580px){ .field-grid { grid-template-columns: 1fr; } }
+
+.required-toggle {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; white-space: nowrap; margin-top: 8px;
+}
+.required-toggle input { accent-color: var(--brand-blue); width: 15px; height: 15px; }
+
+.options-row {
+    margin-top: 10px;
+    display: none;
+}
+.options-row.visible { display: block; }
+
+.add-field-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 18px;
+    border: 2px dashed var(--border-subtle);
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: var(--radius-md);
+    cursor: pointer; font-size: 0.88rem; font-weight: 600;
+    font-family: inherit;
+    width: 100%;
+    justify-content: center;
+    transition: var(--transition);
+    margin-top: 4px;
+}
+.add-field-btn:hover { border-color: var(--brand-blue); color: var(--brand-blue); background: var(--brand-blue-soft); }
+
+.empty-fields-hint {
+    text-align: center; padding: 30px;
+    color: var(--text-muted); font-size: 0.88rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="job-form-container animate-in">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow"><i class="fas fa-briefcase"></i> {% trans "الوظائف" %}</div>
+            <h1 class="page-title">{% if job %}{% trans "تعديل الوظيفة" %}{% else %}{% trans "نشر وظيفة جديدة" %}{% endif %}</h1>
+        </div>
+        <a href="{% url 'jobs:list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> {% trans "العودة" %}
+        </a>
+    </div>
+
+    <form method="POST" id="jobForm">
+        {% csrf_token %}
+
+        <!-- ── Validation Errors Banner ── -->
+        {% if form.errors %}
+        <div style="background:rgba(239,68,68,0.08); border:1.5px solid rgba(239,68,68,0.3); border-radius:var(--radius-md); padding:14px 18px; margin-bottom:20px; display:flex; gap:10px; align-items:flex-start;">
+            <i class="fas fa-exclamation-triangle" style="color:var(--danger); margin-top:2px; flex-shrink:0;"></i>
+            <div>
+                <div style="font-weight:800; color:var(--danger); font-size:0.9rem; margin-bottom:6px;">{% trans "يرجى تصحيح الأخطاء التالية:" %}</div>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                    <div style="font-size:0.82rem; color:var(--danger);">• {{ field.label }}: {{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                <div style="font-size:0.82rem; color:var(--danger);">• {{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ── Section 1: Basic Info ── -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-info-circle" style="color:var(--brand-blue);"></i>
+                {% trans "المعلومات الأساسية" %}
+            </div>
+
+            <div class="form-group">
+                <label>{% trans "المسمى الوظيفي" %} <span style="color:var(--danger)">*</span></label>
+                <input type="text" name="title" class="form-control" required
+                       value="{{ form.title.value|default:'' }}"
+                       placeholder="{% trans 'مثال: مطور واجهات أمامية' %}">
+            </div>
+
+            <div class="field-row">
+                <div class="form-group">
+                    <label>{% trans "الموقع" %}</label>
+                    <input type="text" name="location" class="form-control"
+                           value="{{ form.location.value|default:'' }}"
+                           placeholder="{% trans 'مثال: الرياض أو عن بعد' %}">
+                </div>
+                <div class="form-group">
+                    <label>{% trans "القسم" %}</label>
+                    <input type="text" name="department" class="form-control"
+                           value="{{ form.department.value|default:'' }}"
+                           placeholder="{% trans 'مثال: هندسة البرمجيات' %}">
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="form-group">
+                    <label>{% trans "نوع الوظيفة" %}</label>
+                    <select name="job_type" class="form-control">
+                        <option value="full_time" {% if form.job_type.value == 'full_time' %}selected{% endif %}>{% trans "Full-time" %}</option>
+                        <option value="part_time" {% if form.job_type.value == 'part_time' %}selected{% endif %}>{% trans "Part-time" %}</option>
+                        <option value="remote"    {% if form.job_type.value == 'remote' %}selected{% endif %}>{% trans "Remote" %}</option>
+                        <option value="contract"  {% if form.job_type.value == 'contract' %}selected{% endif %}>{% trans "Contract" %}</option>
+                        <option value="internship"{% if form.job_type.value == 'internship' %}selected{% endif %}>{% trans "Internship" %}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>{% trans "الحالة" %}</label>
+                    <select name="status" class="form-control">
+                        <option value="open"   {% if form.status.value != 'closed' %}selected{% endif %}>{% trans "مفتوحة" %}</option>
+                        <option value="closed" {% if form.status.value == 'closed' %}selected{% endif %}>{% trans "مغلقة" %}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="form-group">
+                    <label>{% trans "الراتب (اختياري)" %}</label>
+                    <input type="number" name="salary" class="form-control" min="0"
+                           value="{{ form.salary.value|default:'' }}"
+                           placeholder="{% trans 'بالدولار' %}">
+                </div>
+                <div class="form-group">
+                    <label>{% trans "آخر موعد للتقديم" %}</label>
+                    <input type="date" name="application_deadline" class="form-control"
+                           value="{{ form.application_deadline.value|default:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Section 2: Description ── -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-align-left" style="color:var(--accent-gold);"></i>
+                {% trans "وصف الوظيفة" %}
+            </div>
+            <div class="form-group">
+                <label>{% trans "الوصف الكامل" %} <span style="color:var(--danger)">*</span></label>
+                <textarea name="description" class="form-control" required rows="5"
+                          placeholder="{% trans 'صف مهام الوظيفة ومسؤولياتها...' %}">{{ form.description.value|default:'' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>{% trans "المهارات المطلوبة" %}</label>
+                <textarea name="required_skills" class="form-control" rows="3"
+                          placeholder="{% trans 'مثال: Python, Django, REST APIs...' %}">{{ form.required_skills.value|default:'' }}</textarea>
+            </div>
+        </div>
+
+        <!-- ── Section 3: Custom Fields ── -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-sliders-h" style="color:#8b5cf6;"></i>
+                {% trans "حقول إضافية في نموذج التقديم" %}
+                <span style="font-size:0.75rem; font-weight:500; color:var(--text-muted); margin-inline-start:auto;">
+                    {% trans "اختياري — أسئلة إضافية يملأها المتقدمون" %}
+                </span>
+            </div>
+
+            <div style="background:rgba(139, 92, 246, 0.08); border:1.5px solid rgba(139, 92, 246, 0.2); border-radius:var(--radius-md); padding:14px 18px; margin-bottom:20px; display:flex; gap:10px; align-items:flex-start;">
+                <i class="fas fa-info-circle" style="color:#8b5cf6; margin-top:2px; flex-shrink:0;"></i>
+                <div>
+                    <div style="font-weight:800; color:#8b5cf6; font-size:0.9rem; margin-bottom:4px;">{% trans "معلومات أساسية مضمنة دائماً:" %}</div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.6;">
+                        {% trans "يتم طلب هذه البيانات من جميع المتقدمين افتراضياً ولا حاجة لإضافتها هنا:" %}
+                        <span class="badge bg-light text-dark border">{% trans "الاسم الكامل" %}</span>
+                        <span class="badge bg-light text-dark border">{% trans "رقم الهاتف" %}</span>
+                        <span class="badge bg-light text-dark border">{% trans "البريد الإلكتروني" %}</span>
+                        <span class="badge bg-light text-dark border">{% trans "المسمى الوظيفي" %}</span>
+                        <span class="badge bg-light text-dark border">{% trans "سنوات الخبرة" %}</span>
+                        <span class="badge bg-light text-dark border">{% trans "الموقع" %}</span>
+                        <span class="badge bg-light text-dark border">{% trans "السيرة الذاتية (CV)" %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="custom-fields-list">
+                <!-- Existing fields (edit mode) -->
+                {% for cf in custom_fields %}
+                <div class="custom-field-item" data-index="{{ forloop.counter0 }}">
+                    <div class="field-header">
+                        <span class="drag-handle">⠿</span>
+                        <span class="field-type-badge">{{ cf.get_field_type_display }}</span>
+                        <span style="font-size:0.85rem; font-weight:700; color:var(--text-main);">{{ cf.label }}</span>
+                        {% if cf.is_required %}<span style="font-size:0.7rem; color:var(--danger); font-weight:700;">{% trans "إلزامي" %}</span>{% endif %}
+                    </div>
+                    <input type="hidden" name="cf_id[]"        value="{{ cf.id }}">
+                    <div class="field-grid">
+                        <div class="form-group" style="margin:0;">
+                            <label>{% trans "السؤال / اسم الحقل" %}</label>
+                            <input type="text" name="cf_label[]" class="form-control" value="{{ cf.label }}" required>
+                        </div>
+                        <label class="required-toggle">
+                            <input type="checkbox" name="cf_required[]" value="{{ forloop.counter0 }}" {% if cf.is_required %}checked{% endif %}>
+                            {% trans "إلزامي" %}
+                        </label>
+                        <div class="form-group" style="margin:0;">
+                            <label>{% trans "النوع" %}</label>
+                            <select name="cf_type[]" class="form-control field-type-select" onchange="toggleOptions(this)">
+                                <option value="text"        {% if cf.field_type == 'text' %}selected{% endif %}>{% trans "📝 نص قصير" %}</option>
+                                <option value="textarea"    {% if cf.field_type == 'textarea' %}selected{% endif %}>{% trans "📄 نص طويل" %}</option>
+                                <option value="select"      {% if cf.field_type == 'select' %}selected{% endif %}>{% trans "📋 قائمة اختيار" %}</option>
+                                <option value="checkbox"    {% if cf.field_type == 'checkbox' %}selected{% endif %}>{% trans "☑️ نعم / لا" %}</option>
+                                <option value="date"        {% if cf.field_type == 'date' %}selected{% endif %}>{% trans "📅 تاريخ" %}</option>
+                                <option value="number"      {% if cf.field_type == 'number' %}selected{% endif %}>{% trans "🔢 رقم" %}</option>
+                                <option value="file_upload" {% if cf.field_type == 'file_upload' %}selected{% endif %}>{% trans "📎 ملف (PDF/DOC)" %}</option>
+                                <option value="image_upload"{% if cf.field_type == 'image_upload' %}selected{% endif %}>{% trans "🖼️ صورة" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="options-row {% if cf.field_type == 'select' %}visible{% endif %}">
+                        <div class="form-group" style="margin:0;">
+                            <label>{% trans "الخيارات (مفصولة بفاصلة)" %}</label>
+                            <input type="text" name="cf_options[]" class="form-control" value="{{ cf.options }}"
+                                   placeholder="{% trans 'خيار1,خيار2,خيار3' %}">
+                        </div>
+                    </div>
+                    <button type="button" class="remove-field-btn" onclick="removeField(this)" title="{% trans 'حذف الحقل' %}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                {% empty %}
+                <div class="empty-fields-hint" id="emptyHint">
+                    <i class="fas fa-magic" style="font-size:1.5rem; display:block; margin-bottom:8px; opacity:0.4;"></i>
+                    {% trans "لا توجد حقول إضافية بعد — اضغط الزر أدناه لإضافة أسئلة مخصصة" %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Add Field Button -->
+            <button type="button" class="add-field-btn" onclick="addField()">
+                <i class="fas fa-plus-circle"></i>
+                {% trans "إضافة حقل جديد" %}
+            </button>
+        </div>
+
+        <!-- ── Submit ── -->
+        <div style="display:flex; gap:12px; justify-content:flex-end; margin-bottom:40px;">
+            <a href="{% url 'jobs:list' %}" class="btn btn-secondary">{% trans "إلغاء" %}</a>
+            <button type="submit" class="btn btn-primary" style="padding:11px 32px; font-size:1rem; font-weight:800;">
+                <i class="fas fa-save"></i>
+                {% if job %}{% trans "حفظ التغييرات" %}{% else %}{% trans "نشر الوظيفة" %}{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let fieldIndex = {{ custom_fields|length }};
+
+const FIELD_TYPES = {
+    'text':         '📝 نص قصير',
+    'textarea':     '📄 نص طويل',
+    'select':       '📋 قائمة اختيار',
+    'checkbox':     '☑️ نعم / لا',
+    'date':         '📅 تاريخ',
+    'number':       '🔢 رقم',
+    'file_upload':  '📎 ملف (PDF/DOC)',
+    'image_upload': '🖼️ صورة',
+};
+
+function addField() {
+    document.getElementById('emptyHint')?.remove();
+
+    const list = document.getElementById('custom-fields-list');
+    const idx  = fieldIndex++;
+
+    const optionsHTML = Object.entries(FIELD_TYPES)
+        .map(([v, l]) => `<option value="${v}">${l}</option>`)
+        .join('');
+
+    const item = document.createElement('div');
+    item.className = 'custom-field-item';
+    item.dataset.index = idx;
+    item.innerHTML = `
+        <div class="field-header">
+            <span class="drag-handle">⠿</span>
+            <span class="field-type-badge">{% trans "📝 نص قصير" %}</span>
+        </div>
+        <input type="hidden" name="cf_id[]" value="">
+        <div class="field-grid">
+            <div class="form-group" style="margin:0;">
+                <label>{% trans "السؤال / اسم الحقل" %}</label>
+                <input type="text" name="cf_label[]" class="form-control" required
+                       placeholder="{% trans 'مثال: هل لديك خبرة سابقة؟' %}">
+            </div>
+            <label class="required-toggle">
+                <input type="checkbox" name="cf_required[]" value="${idx}">
+                {% trans "إلزامي" %}
+            </label>
+            <div class="form-group" style="margin:0;">
+                <label>{% trans "النوع" %}</label>
+                <select name="cf_type[]" class="form-control field-type-select" onchange="toggleOptions(this)">
+                    ${optionsHTML}
+                </select>
+            </div>
+        </div>
+        <div class="options-row">
+            <div class="form-group" style="margin:0;">
+                <label>{% trans "الخيارات (مفصولة بفاصلة)" %}</label>
+                <input type="text" name="cf_options[]" class="form-control"
+                       placeholder="{% trans 'خيار1,خيار2,خيار3' %}">
+            </div>
+        </div>
+        <button type="button" class="remove-field-btn" onclick="removeField(this)" title="{% trans 'حذف' %}">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    list.appendChild(item);
+
+    // Focus the label input
+    item.querySelector('input[name="cf_label[]"]').focus();
+    // Animate in
+    item.style.opacity = '0'; item.style.transform = 'translateY(10px)';
+    requestAnimationFrame(() => {
+        item.style.transition = 'all 0.25s ease';
+        item.style.opacity = '1'; item.style.transform = 'translateY(0)';
+    });
+}
+
+function removeField(btn) {
+    const item = btn.closest('.custom-field-item');
+    item.style.transition = 'all 0.2s ease';
+    item.style.opacity = '0'; item.style.transform = 'translateX(20px)';
+    setTimeout(() => {
+        item.remove();
+        if (!document.querySelector('.custom-field-item')) {
+            const list = document.getElementById('custom-fields-list');
+            list.innerHTML = `
+                <div class="empty-fields-hint" id="emptyHint">
+                    <i class="fas fa-magic" style="font-size:1.5rem; display:block; margin-bottom:8px; opacity:0.4;"></i>
+                    {% trans 'لا توجد حقول إضافية — اضغط الزر أدناه لإضافة أسئلة' %}
+                </div>`;
+        }
+    }, 200);
+}
+
+function toggleOptions(select) {
+    const row = select.closest('.custom-field-item').querySelector('.options-row');
+    const badge = select.closest('.custom-field-item').querySelector('.field-type-badge');
+    badge.textContent = FIELD_TYPES[select.value] || select.value;
+    row.classList.toggle('visible', select.value === 'select');
+}
+
+// Update badges for existing selects on load
+document.querySelectorAll('.field-type-select').forEach(s => {
+    const badge = s.closest('.custom-field-item')?.querySelector('.field-type-badge');
+    if (badge) badge.textContent = FIELD_TYPES[s.value] || s.value;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,334 @@
+<!-- ═══ HERO SECTION – WordPress Custom HTML Widget ═══ -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+<style>
+    .wg-hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .wg-hero-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: brightness(0.3);
+    }
+
+    .wg-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(28, 28, 46, .4) 0%, rgba(52, 56, 97, .6) 50%, rgba(28, 28, 46, .85) 100%);
+    }
+
+    .wg-hero-particles {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .wg-hero-particles span {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: #c79d6a;
+        border-radius: 50%;
+        opacity: .3;
+        animation: wg-float 8s infinite ease-in-out;
+    }
+
+    .wg-hero-particles span:nth-child(1) {
+        top: 20%;
+        left: 10%;
+        animation-delay: 0s
+    }
+
+    .wg-hero-particles span:nth-child(2) {
+        top: 60%;
+        left: 80%;
+        animation-delay: 2s
+    }
+
+    .wg-hero-particles span:nth-child(3) {
+        top: 40%;
+        left: 50%;
+        animation-delay: 4s
+    }
+
+    .wg-hero-particles span:nth-child(4) {
+        top: 80%;
+        left: 30%;
+        animation-delay: 1s
+    }
+
+    .wg-hero-particles span:nth-child(5) {
+        top: 15%;
+        left: 70%;
+        animation-delay: 3s
+    }
+
+    .wg-hero-particles span:nth-child(6) {
+        top: 70%;
+        left: 15%;
+        animation-delay: 5s
+    }
+
+    @keyframes wg-float {
+
+        0%,
+        100% {
+            transform: translateY(0) scale(1);
+            opacity: .3
+        }
+
+        50% {
+            transform: translateY(-30px) scale(1.5);
+            opacity: .6
+        }
+    }
+
+    .wg-hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 780px;
+        text-align: center;
+        padding: 24px 24px 60px;
+        padding-top: 100px;
+        /* ← عدّل هذه القيمة لتتوافق مع ارتفاع الهيدر */
+    }
+
+    .wg-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(199, 157, 106, .15);
+        border: 1px solid rgba(199, 157, 106, .3);
+        padding: 8px 20px;
+        border-radius: 50px;
+        color: #ddb88a;
+        font-size: .75rem;
+        letter-spacing: .2em;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 32px;
+        backdrop-filter: blur(8px);
+    }
+
+    .wg-hero-badge svg {
+        width: 14px;
+        height: 14px
+    }
+
+    .wg-hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 4rem;
+        color: #fff;
+        margin-bottom: 24px;
+        letter-spacing: -.02em;
+        line-height: 1.2;
+    }
+
+    .wg-hero h1 em {
+        font-style: normal;
+        color: #ddb88a;
+        position: relative;
+    }
+
+    .wg-hero h1 em::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #c79d6a;
+        border-radius: 2px;
+        opacity: .5;
+    }
+
+    .wg-hero-subtitle {
+        font-size: 1.15rem;
+        color: rgba(255, 255, 255, .7);
+        font-weight: 300;
+        margin-bottom: 48px;
+        line-height: 1.8;
+    }
+
+    .wg-hero-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .wg-btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #c79d6a;
+        color: #fff !important;
+        font-weight: 600;
+        padding: 16px 36px;
+        border-radius: 12px;
+        text-decoration: none !important;
+        font-size: .88rem;
+        box-shadow: 0 8px 32px rgba(199, 157, 106, .25);
+        transition: .4s;
+    }
+
+    .wg-btn-primary:hover {
+        background: #a8814f;
+        transform: translateY(-2px)
+    }
+
+    .wg-btn-primary svg {
+        width: 18px;
+        height: 18px
+    }
+
+    .wg-btn-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        color: #fff !important;
+        font-weight: 500;
+        padding: 16px 36px;
+        border-radius: 12px;
+        text-decoration: none !important;
+        font-size: .88rem;
+        border: 1.5px solid rgba(255, 255, 255, .25);
+        transition: .4s;
+    }
+
+    .wg-btn-outline:hover {
+        border-color: #c79d6a;
+        color: #c79d6a !important
+    }
+
+    .wg-btn-outline svg {
+        width: 18px;
+        height: 18px
+    }
+
+    .wg-hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 48px;
+        margin-top: 64px;
+        padding-top: 40px;
+        border-top: 1px solid rgba(255, 255, 255, .1);
+        flex-wrap: wrap;
+    }
+
+    .wg-hero-stat {
+        text-align: center
+    }
+
+    .wg-hero-stat .num {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #ddb88a;
+    }
+
+    .wg-hero-stat .lbl {
+        font-size: .75rem;
+        color: rgba(255, 255, 255, .5);
+        text-transform: uppercase;
+        letter-spacing: .15em;
+        margin-top: 4px;
+    }
+
+    @media(max-width:768px) {
+        .wg-hero h1 {
+            font-size: 2.4rem
+        }
+
+        .wg-hero-stats {
+            gap: 24px
+        }
+
+        .wg-hero-stat .num {
+            font-size: 1.8rem
+        }
+    }
+
+    @media(max-width:480px) {
+        .wg-hero h1 {
+            font-size: 2rem
+        }
+
+        .wg-hero-actions {
+            flex-direction: column;
+            align-items: center
+        }
+    }
+</style>
+
+<section class="wg-hero" id="hero">
+    <img src="https://d-alomran.com/wp-content/uploads/2026/02/WhatsApp-Image-2026-02-17-at-08.34.48.jpeg"
+        alt="Anwer Alosaimi Compound" class="wg-hero-bg">
+    <div class="wg-hero-overlay"></div>
+    <div class="wg-hero-particles">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+    </div>
+    <div class="wg-hero-content">
+        <div class="wg-hero-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+            </svg>
+            A Premium Residential Project
+        </div>
+        <h1>Experience <em>Luxury</em> Living at Its Finest</h1>
+        <p class="wg-hero-subtitle">
+            Welcome to Anwer Alosaimi Compound by Dana Al Omran Al Mumayaz.
+            Where modern architecture meets timeless elegance.
+        </p>
+        <div class="wg-hero-actions">
+            <a href="#contact" class="wg-btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Schedule a Visit
+            </a>
+            <a href="#gallery" class="wg-btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                View Gallery
+            </a>
+        </div>
+        <div class="wg-hero-stats">
+            <div class="wg-hero-stat">
+                <div class="num">150+</div>
+                <div class="lbl">Luxury Units</div>
+            </div>
+            <div class="wg-hero-stat">
+                <div class="num">12</div>
+                <div class="lbl">Amenities</div>
+            </div>
+            <div class="wg-hero-stat">
+                <div class="num">24/7</div>
+                <div class="lbl">Security</div>
+            </div>
+        </div>
+    </div>
+</section>

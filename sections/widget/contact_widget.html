@@ -1,0 +1,360 @@
+<!-- ═══ CONTACT SECTION – WordPress Custom HTML Widget ═══ -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+<style>
+    .wg-contact {
+        padding: 120px 0;
+        background: #faf8f5;
+        font-family: 'Inter', sans-serif
+    }
+
+    .wg-contact .wg-container {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 24px
+    }
+
+    .wg-contact .wg-sec-header {
+        text-align: center;
+        max-width: 620px;
+        margin: 0 auto 72px
+    }
+
+    .wg-contact .wg-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #c79d6a;
+        font-size: .78rem;
+        letter-spacing: .2em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        font-weight: 600
+    }
+
+    .wg-contact .wg-eyebrow::before,
+    .wg-contact .wg-eyebrow::after {
+        content: '';
+        width: 24px;
+        height: 1px;
+        background: #c79d6a;
+        opacity: .4
+    }
+
+    .wg-contact .wg-sec-header h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.8rem;
+        color: #343861;
+        margin-bottom: 16px;
+        letter-spacing: -.02em;
+        line-height: 1.2
+    }
+
+    .wg-contact .wg-sec-header p {
+        color: #6b6b80;
+        font-size: 1.05rem;
+        line-height: 1.7
+    }
+
+    .wg-contact-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 64px;
+        align-items: start
+    }
+
+    .wg-contact-info-hdr {
+        margin-bottom: 40px
+    }
+
+    .wg-contact-info-hdr h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        color: #343861;
+        margin-bottom: 12px;
+        line-height: 1.2
+    }
+
+    .wg-contact-info-hdr p {
+        color: #6b6b80
+    }
+
+    .wg-contact-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 20px
+    }
+
+    .wg-contact-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 20px;
+        border-radius: 10px;
+        background: #f3efe9;
+        transition: .4s
+    }
+
+    .wg-contact-card:hover {
+        background: #faf8f5;
+        box-shadow: 0 2px 8px rgba(52, 56, 97, .04)
+    }
+
+    .wg-contact-card-icon {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 10px;
+        background: rgba(199, 157, 106, .1);
+        color: #c79d6a;
+        display: flex;
+        align-items: center;
+        justify-content: center
+    }
+
+    .wg-contact-card-icon svg {
+        width: 20px;
+        height: 20px
+    }
+
+    .wg-contact-lbl {
+        font-size: .72rem;
+        color: #c79d6a;
+        font-weight: 600;
+        letter-spacing: .15em;
+        text-transform: uppercase;
+        margin-bottom: 4px
+    }
+
+    .wg-contact-card p {
+        color: #1c1c2e;
+        font-size: .92rem;
+        font-weight: 500
+    }
+
+    /* Form */
+    .wg-form-wrap {
+        background: #fff;
+        padding: 44px;
+        border-radius: 16px;
+        border: 1px solid #e8e2d9
+    }
+
+    .wg-form-wrap h4 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.3rem;
+        color: #343861;
+        margin-bottom: 8px;
+        line-height: 1.2
+    }
+
+    .wg-form-wrap>p {
+        color: #6b6b80;
+        font-size: .88rem;
+        margin-bottom: 28px
+    }
+
+    .wg-form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px
+    }
+
+    .wg-form-group {
+        margin-bottom: 16px
+    }
+
+    .wg-form-group label {
+        display: block;
+        font-size: .78rem;
+        font-weight: 600;
+        color: #1c1c2e;
+        margin-bottom: 8px;
+        letter-spacing: .03em
+    }
+
+    .wg-form-group input,
+    .wg-form-group textarea {
+        width: 100%;
+        padding: 14px 16px;
+        background: #faf8f5;
+        border: 1.5px solid #e8e2d9;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-size: .9rem;
+        color: #1c1c2e;
+        outline: none;
+        transition: .4s;
+        box-sizing: border-box
+    }
+
+    .wg-form-group input:focus,
+    .wg-form-group textarea:focus {
+        border-color: #c79d6a;
+        box-shadow: 0 0 0 4px rgba(199, 157, 106, .1)
+    }
+
+    .wg-form-group input::placeholder,
+    .wg-form-group textarea::placeholder {
+        color: #6b6b80;
+        opacity: .6
+    }
+
+    .wg-form-group textarea {
+        resize: vertical;
+        min-height: 120px
+    }
+
+    .wg-btn-send {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        background: #c79d6a;
+        color: #fff;
+        font-weight: 600;
+        padding: 16px;
+        border-radius: 12px;
+        font-size: .88rem;
+        box-shadow: 0 8px 32px rgba(199, 157, 106, .25);
+        transition: .4s;
+        border: none;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif
+    }
+
+    .wg-btn-send:hover {
+        background: #a8814f;
+        transform: translateY(-2px)
+    }
+
+    .wg-btn-send svg {
+        width: 18px;
+        height: 18px
+    }
+
+    @media(max-width:768px) {
+        .wg-contact-grid {
+            grid-template-columns: 1fr
+        }
+
+        .wg-form-row {
+            grid-template-columns: 1fr
+        }
+
+        .wg-form-wrap {
+            padding: 28px
+        }
+
+        .wg-contact .wg-sec-header h2 {
+            font-size: 2rem
+        }
+
+        .wg-contact {
+            padding: 80px 0
+        }
+    }
+</style>
+
+<section class="wg-contact" id="contact">
+    <div class="wg-container">
+        <div class="wg-sec-header">
+            <div class="wg-eyebrow">Get in Touch</div>
+            <h2>Contact Our Team</h2>
+            <p>We would love to hear from you. Reach out to learn more about your future home.</p>
+        </div>
+        <div class="wg-contact-grid">
+            <!-- Info -->
+            <div>
+                <div class="wg-contact-info-hdr">
+                    <h3>Let's Start a Conversation</h3>
+                    <p>Our dedicated team is here to assist you every step of the way.</p>
+                </div>
+                <div class="wg-contact-cards">
+                    <div class="wg-contact-card">
+                        <div class="wg-contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg></div>
+                        <div>
+                            <div class="wg-contact-lbl">Office Location</div>
+                            <p>King Fahd Road, Olaya District, Riyadh</p>
+                        </div>
+                    </div>
+                    <div class="wg-contact-card">
+                        <div class="wg-contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                                </path>
+                            </svg></div>
+                        <div>
+                            <div class="wg-contact-lbl">Phone</div>
+                            <p>+966 50 123 4567</p>
+                        </div>
+                    </div>
+                    <div class="wg-contact-card">
+                        <div class="wg-contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                </path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg></div>
+                        <div>
+                            <div class="wg-contact-lbl">Email</div>
+                            <p>sales@danaalomran.com</p>
+                        </div>
+                    </div>
+                    <div class="wg-contact-card">
+                        <div class="wg-contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg></div>
+                        <div>
+                            <div class="wg-contact-lbl">Working Hours</div>
+                            <p>Sun – Thu: 9AM – 6PM</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Form -->
+            <div class="wg-form-wrap">
+                <h4>Send Us a Message</h4>
+                <p>Fill out the form and our team will get back to you promptly.</p>
+                <form id="wgContactForm">
+                    <div class="wg-form-row">
+                        <div class="wg-form-group"><label for="wg-name">Full Name</label><input type="text" id="wg-name"
+                                placeholder="Enter your full name" required></div>
+                        <div class="wg-form-group"><label for="wg-email">Email Address</label><input type="email"
+                                id="wg-email" placeholder="Enter your email" required></div>
+                    </div>
+                    <div class="wg-form-group"><label for="wg-phone">Phone Number</label><input type="tel" id="wg-phone"
+                            placeholder="Enter your phone number"></div>
+                    <div class="wg-form-group"><label for="wg-msg">Your Message</label><textarea id="wg-msg"
+                            placeholder="Tell us how we can help you..." rows="5"></textarea></div>
+                    <button type="submit" class="wg-btn-send">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        Send Inquiry
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.getElementById('wgContactForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        this.reset();
+        alert('Thank you! We will contact you soon.');
+    });
+</script>

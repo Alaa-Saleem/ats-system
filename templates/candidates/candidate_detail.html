@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "بيانات المرشح" %} - {{ candidate.full_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header animate-in">
+    <div class="page-header-inner">
+        <div>
+            <div class="page-eyebrow">
+                <a href="{% url 'candidates:list' %}" class="text-decoration-none"><i class="fas fa-arrow-right"></i> {% trans "العودة للوراء" %}</a>
+            </div>
+            <h1 class="page-title">{{ candidate.full_name }}</h1>
+            <p class="page-subtitle"><i class="fas fa-briefcase"></i> {{ candidate.current_title|default:"بدون عمل" }}</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <a href="{% url 'candidates:list' %}" class="btn btn-outline">
+                <i class="fas fa-arrow-right"></i>
+                {% trans "العودة للقائمة" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4 animate-in" style="animation-delay: 0.1s;">
+            <div class="card-header">{% trans "بيانات عامة" %}</div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "الاسم الكامل" %}</div>
+                    <div class="col-sm-8 fw-semibold">{{ candidate.full_name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "رقم الهاتف" %}</div>
+                    <div class="col-sm-8">
+                        {% if hide_sensitive %}***{% else %}{{ candidate.phone }}{% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "البريد الإلكتروني" %}</div>
+                    <div class="col-sm-8">
+                        {% if hide_sensitive %}***{% else %}{{ candidate.email|default:"-" }}{% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "المسمى الوظيفي الحالي" %}</div>
+                    <div class="col-sm-8">{{ candidate.current_title|default:"-" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "سنوات الخبرة" %}</div>
+                    <div class="col-sm-8">{{ candidate.years_of_experience|default:"-" }} {% if candidate.years_of_experience %}{% trans "سنوات" %}{% endif %}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "الموقع / المدينة" %}</div>
+                    <div class="col-sm-8">{{ candidate.location|default:"-" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "السيرة الذاتية (CV)" %}</div>
+                    <div class="col-sm-8">
+                        {% if candidate.cv_file %}
+                            <a href="{{ candidate.cv_file.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                <i class="fas fa-download"></i> {% trans "تحميل الملف" %}
+                            </a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "ملاحظات إضافية" %}</div>
+                    <div class="col-sm-8" style="white-space: pre-line;">{{ candidate.notes|default:"-" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 animate-in" style="animation-delay: 0.2s;">
+            <div class="card-header">{% trans "الطلب الحالي" %}</div>
+            <div class="card-body">
+                {% if application %}
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "الوظيفة المتقدم لها" %}</div>
+                    <div class="col-sm-8 fw-semibold">{{ application.job.title }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "المرحلة الحالية" %}</div>
+                    <div class="col-sm-8">
+                        <span class="badge" style="background-color: {{ application.current_stage.color|default:'#6c757d' }}; color: white;">
+                            {{ application.current_stage.name }}
+                        </span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "مصدر التقديم" %}</div>
+                    <div class="col-sm-8">{{ application.source|default:"-" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{% trans "تاريخ التقديم" %}</div>
+                    <div class="col-sm-8">{{ application.created_at|date:"Y-m-d H:i" }}</div>
+                </div>
+                <hr style="border-color: var(--border-color);">
+                <h6 class="mb-3 text-muted">{% trans "إجابات النموذج الإضافية" %}</h6>
+                {% for answer in application_answers %}
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">{{ answer.field.label }}</div>
+                    <div class="col-sm-8">
+                        {% if answer.field.field_type == 'file_upload' or answer.field.field_type == 'image_upload' %}
+                            {% if answer.file_answer %}
+                                <a href="{{ answer.file_answer.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline">
+                                    <i class="fas fa-paperclip"></i> {% trans "عرض الملف" %}
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        {% else %}
+                            {{ answer.text_answer|default:"-" }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-soft mb-0">
+                    <i class="fas fa-info-circle"></i> {% trans "لا توجد حقول إضافية ضمن نموذج هذا الطلب." %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="alert alert-soft mb-0">
+                    <i class="fas fa-info-circle"></i> {% trans "لا يوجد طلب تقديم مرتبط بهذا المرشح حتى الآن." %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

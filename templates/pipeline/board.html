@@ -1,0 +1,1795 @@
+{% extends 'base.html' %}
+{% load i18n activity_tags %}
+
+{% block title %}{% trans "خط التوظيف" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ══════════════════════════════════════════
+   Pipeline Page — Full Feature Layout
+   ══════════════════════════════════════════ */
+.content-wrapper {
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: calc(100vh - 68px); /* Strictly constrain wrapper height */
+    min-height: 0; /* Allow flex item to shrink below content size */
+}
+
+/* ── Quick Actions Bar ── */
+.pipeline-topbar {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    position: sticky;
+    top: var(--topbar-height);
+    z-index: 50;
+}
+
+.pipeline-title-group { flex-shrink: 0; }
+.pipeline-title-group .eyebrow {
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--brand-blue); margin-bottom: 1px;
+    display: flex; align-items: center; gap: 5px;
+}
+.pipeline-title-group h2 {
+    font-weight: 800; font-size: 1.1rem; color: var(--text-main); margin: 0; line-height: 1.2;
+}
+
+.topbar-divider {
+    width: 1px; height: 30px; background: var(--border-subtle); flex-shrink: 0;
+}
+
+/* Search box */
+.pipeline-search {
+    position: relative;
+    flex: 1; min-width: 200px; max-width: 320px;
+}
+.pipeline-search-input {
+    width: 100%;
+    background: var(--bg-surface-2);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 8px 36px 8px 14px;
+    font-family: inherit; font-size: 0.85rem; color: var(--text-main);
+    outline: none; transition: var(--transition); height: 38px;
+}
+.pipeline-search-input:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px var(--brand-blue-soft);
+    background: var(--bg-surface);
+}
+.pipeline-search-icon {
+    position: absolute; inset-inline-end: 11px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 0.85rem; pointer-events: none;
+}
+.search-results-dropdown {
+    position: absolute; top: calc(100% + 6px); inset-inline-start: 0; inset-inline-end: 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 200;
+    overflow: hidden;
+    display: none;
+}
+.search-result-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: var(--brand-blue-soft); }
+.search-result-name { font-size: 0.875rem; font-weight: 600; color: var(--text-main); }
+.search-result-meta { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Job filter */
+.pipeline-filter-select {
+    background: var(--bg-surface-2);
+    border: 1.5px solid var(--border-subtle);
+    color: var(--text-main);
+    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    font-size: 0.85rem; font-family: inherit;
+    outline: none; cursor: pointer; height: 38px;
+    transition: var(--transition); min-width: 180px;
+}
+.pipeline-filter-select:focus, .pipeline-filter-select:hover {
+    border-color: var(--brand-blue);
+}
+
+.topbar-actions { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; }
+
+/* ── Mini Stats Strip ── */
+.stats-strip {
+    background: var(--bg-surface-2);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 9px 24px;
+    display: flex; gap: 0; overflow-x: auto; flex-shrink: 0;
+    scrollbar-width: none;
+}
+.stats-strip::-webkit-scrollbar { display: none; }
+
+.stat-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 18px;
+    border-inline-end: 1px solid var(--border-subtle);
+    flex-shrink: 0; cursor: default;
+    transition: var(--transition-fast);
+}
+.stat-pill:last-child { border-inline-end: none; }
+.stat-pill:hover { background: var(--brand-blue-soft); border-radius: var(--radius-sm); }
+
+.stat-pill-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+.stat-pill-value { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
+.stat-pill-pct { font-size: 0.72rem; color: var(--text-muted); }
+
+.stat-pill-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--brand-blue); flex-shrink: 0;
+}
+
+/* ── Board Layout ── */
+.pipeline-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    min-height: 0; /* Allow layout to shrink so inner scrollbar is visible */
+}
+
+.board-scroll {
+    flex: 1;
+    min-width: 0; /* This solves the horizontal expansion Flexbox bug */
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 20px 20px 10px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    /* Custom Scrollbar for Board */
+    scrollbar-color: var(--brand-blue-soft) transparent;
+    scrollbar-width: thin;
+}
+.board-scroll::-webkit-scrollbar {
+    height: 10px;
+}
+.board-scroll::-webkit-scrollbar-track {
+    background: var(--bg-surface-2);
+    border-radius: 6px;
+}
+.board-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--brand-blue);
+    border-radius: 6px;
+    border: 3px solid var(--bg-surface-2);
+}
+.board-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: var(--brand-blue-dark);
+}
+
+/* ── Stage Columns ── */
+.stage-column {
+    min-width: 280px;
+    max-width: 280px;
+    background: var(--bg-surface-2);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 220px);
+    transition: border-color 0.2s;
+    flex-shrink: 0;
+}
+.stage-column.drag-over {
+    border-color: var(--brand-blue);
+    background: var(--brand-blue-xsoft);
+    box-shadow: 0 0 0 3px var(--brand-blue-soft);
+}
+
+.stage-header {
+    padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-bottom: 2px solid var(--brand-blue);
+    gap: 8px;
+    flex-shrink: 0;
+}
+.stage-header-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.stage-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.stage-name { font-weight: 700; color: var(--text-main); font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stage-badge {
+    background: var(--brand-blue); color: #fff;
+    font-size: 0.72rem; font-weight: 700;
+    padding: 2px 9px; border-radius: 999px;
+    flex-shrink: 0; min-width: 24px; text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stage-body {
+    padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 80px;
+}
+.stage-body::-webkit-scrollbar { width: 3px; }
+.stage-body::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 999px; }
+
+/* ── App Card ── */
+.app-card {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    user-select: none;
+}
+.app-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--brand-blue);
+    box-shadow: 0 6px 20px rgba(27,117,188,0.12);
+}
+.app-card.sortable-ghost {
+    opacity: 0.4;
+    border: 2px dashed var(--brand-blue);
+    background: var(--brand-blue-soft);
+}
+.app-card.sortable-drag {
+    box-shadow: 0 16px 40px rgba(27,117,188,0.25);
+    rotate: 2deg;
+    border-color: var(--brand-blue);
+}
+.app-card.shortlisted {
+    border-inline-start: 3px solid var(--accent-gold);
+}
+.app-card.shortlisted .shortlist-badge { display: inline-flex; }
+
+.cand-avatar-name { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
+.cand-avatar-sm {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-blue-light) 100%);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.78rem; flex-shrink: 0;
+}
+.cand-name { font-weight: 700; color: var(--text-main); font-size: 0.875rem; line-height: 1.2; }
+.cand-title { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+
+.cand-job-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.75rem; color: var(--text-muted);
+    background: var(--bg-surface-2);
+    border-radius: 6px; padding: 3px 8px;
+    margin-bottom: 10px;
+}
+
+.card-meta {
+    display: flex; align-items: center; gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.star-rating { display: flex; gap: 1px; }
+.star-rating .star { color: var(--accent-gold); font-size: 0.72rem; }
+.star-rating .star.empty { color: var(--border-subtle); }
+
+.shortlist-badge {
+    display: none;
+    align-items: center; gap: 3px;
+    background: var(--accent-gold-soft); color: var(--accent-gold);
+    border-radius: 999px; padding: 2px 7px;
+    font-size: 0.65rem; font-weight: 700;
+}
+
+.card-comment-count {
+    margin-inline-start: auto;
+    font-size: 0.72rem; color: var(--text-muted);
+    display: flex; align-items: center; gap: 3px;
+}
+
+/* Drag handle hint */
+.drag-indicator {
+    position: absolute; top: 50%; inset-inline-start: 4px; transform: translateY(-50%);
+    opacity: 0; transition: var(--transition-fast);
+    color: var(--text-light); font-size: 0.65rem; cursor: grab;
+}
+.app-card:hover .drag-indicator { opacity: 1; }
+
+/* Empty column */
+.column-empty {
+    text-align: center; padding: 40px 10px;
+    color: var(--text-light); font-size: 0.8rem;
+}
+.column-empty i { font-size: 1.6rem; margin-bottom: 8px; opacity: 0.3; display: block; }
+
+/* ══════════════════════════════════════════
+   Activity Sidebar (Collapsible)
+   ══════════════════════════════════════════ */
+.activity-panel {
+    width: 300px;
+    background: var(--bg-surface);
+    border-inline-start: 1px solid var(--border-subtle);
+    display: flex; flex-direction: column;
+    flex-shrink: 0;
+    transition: width 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+    overflow: hidden;
+}
+.activity-panel.collapsed {
+    width: 0;
+    border-inline-start-width: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.activity-panel-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 0.875rem; color: var(--text-main);
+    flex-shrink: 0;
+}
+.activity-panel-header i { color: var(--accent-gold); }
+
+/* Filter tabs */
+.act-tabs {
+    display: flex; gap: 4px;
+    padding: 10px 12px 0;
+    flex-shrink: 0;
+}
+.act-tab {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.73rem; font-weight: 600;
+    cursor: pointer; border: none; background: transparent;
+    color: var(--text-muted); font-family: inherit;
+    transition: var(--transition-fast);
+}
+.act-tab.active { background: var(--brand-blue-soft); color: var(--brand-blue); }
+.act-tab:hover:not(.active) { background: var(--bg-surface-2); }
+
+/* Activity list */
+.activity-list {
+    overflow-y: auto; flex: 1; padding: 8px 10px 12px;
+}
+
+.act-item {
+    display: flex; gap: 10px; padding: 10px 6px;
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer; transition: var(--transition-fast);
+    border-radius: 8px;
+}
+.act-item:hover { background: var(--bg-surface-2); }
+.act-item:last-child { border-bottom: none; }
+
+.act-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--brand-blue-soft); color: var(--brand-blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+
+.act-body { flex: 1; min-width: 0; }
+.act-action-tag {
+    display: inline-flex; align-items: center;
+    background: var(--brand-blue-soft); color: var(--brand-blue);
+    border-radius: 4px; padding: 1px 6px;
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; margin-bottom: 3px;
+}
+.act-action-tag.move   { background: rgba(139,92,246,0.1); color: #8B5CF6; }
+.act-action-tag.rate   { background: var(--accent-gold-soft); color: var(--accent-gold); }
+.act-action-tag.reject { background: rgba(239,68,68,0.1); color: var(--danger); }
+.act-action-tag.accept { background: rgba(16,185,129,0.1); color: var(--success); }
+
+.act-desc { font-size: 0.8rem; color: var(--text-body); line-height: 1.4; }
+.act-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; }
+
+/* Toggle button */
+.activity-toggle-fab {
+    position: absolute;
+    inset-inline-end: 0;
+    top: 50%;
+    transform: translateY(-50%) translateX(50%);
+    width: 28px; height: 48px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px 0 0 8px;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.75rem;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.06);
+    transition: var(--transition);
+    z-index: 10;
+}
+.activity-toggle-fab:hover { color: var(--brand-blue); }
+
+/* ══════════════════════════════════════════
+   Candidate Detail MODAL
+   ══════════════════════════════════════════ */
+.modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(6, 8, 12, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.18s ease;
+}
+.modal-backdrop.open { display: flex; }
+
+.cand-modal {
+    background: var(--bg-surface);
+    border-radius: 24px;
+    width: 100%; max-width: 780px;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.28);
+    animation: slideUp 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal top color bar */
+.modal-color-bar {
+    height: 4px;
+    background: linear-gradient(90deg, var(--brand-blue) 0%, var(--brand-blue-light) 60%, var(--accent-gold) 100%);
+    flex-shrink: 0;
+}
+
+.modal-header {
+    padding: 20px 24px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: flex-start; gap: 14px;
+    flex-shrink: 0;
+}
+
+.modal-cand-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-blue-light) 100%);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: 800; flex-shrink: 0;
+}
+
+.modal-cand-info { flex: 1; min-width: 0; }
+.modal-cand-name { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px; }
+.modal-cand-title { font-size: 0.875rem; color: var(--text-muted); }
+.modal-cand-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.modal-meta-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.75rem; color: var(--text-body);
+    background: var(--bg-surface-2); border-radius: 6px; padding: 4px 10px;
+}
+.modal-meta-chip i { color: var(--brand-blue); font-size: 0.7rem; }
+
+.modal-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* Shortlist star button */
+.btn-star {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1.5px solid var(--border-subtle);
+    background: transparent; cursor: pointer;
+    color: var(--text-muted); font-size: 0.95rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--transition);
+}
+.btn-star.active, .btn-star:hover { color: var(--accent-gold); border-color: var(--accent-gold); background: var(--accent-gold-soft); }
+
+.modal-close {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1.5px solid var(--border-subtle);
+    background: transparent; cursor: pointer;
+    color: var(--text-muted); font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--transition);
+}
+.modal-close:hover { background: var(--bg-surface-2); color: var(--text-main); }
+
+/* Tabs */
+.modal-tabs {
+    display: flex; border-bottom: 1px solid var(--border-subtle);
+    padding: 0 24px; background: var(--bg-surface);
+    flex-shrink: 0; overflow-x: auto;
+}
+.modal-tabs::-webkit-scrollbar { display: none; }
+.modal-tab {
+    padding: 12px 16px; border: none; background: transparent;
+    font-family: inherit; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-muted); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: var(--transition); white-space: nowrap;
+}
+.modal-tab.active { color: var(--brand-blue); border-bottom-color: var(--brand-blue); }
+.modal-tab:hover:not(.active) { color: var(--text-main); }
+
+/* Tab content panels */
+.modal-body { overflow-y: auto; flex: 1; }
+.tab-panel { padding: 20px 24px; display: none; }
+.tab-panel.active { display: block; }
+
+/* Quick actions row */
+.quick-actions-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+    background: var(--bg-surface-2);
+}
+
+/* Info grid */
+.info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+.info-item label {
+    display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px;
+}
+.info-item p { font-size: 0.9rem; color: var(--text-main); margin: 0; }
+
+/* Stage move select */
+.stage-move-select {
+    background: var(--bg-surface-2);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 8px 12px; font-family: inherit;
+    font-size: 0.85rem; color: var(--text-main);
+    outline: none; cursor: pointer; transition: var(--transition);
+}
+.stage-move-select:focus { border-color: var(--brand-blue); }
+
+/* Rating stars interactive */
+.rating-stars { display: flex; gap: 6px; margin: 10px 0; }
+.rating-star {
+    font-size: 1.4rem; cursor: pointer; transition: var(--transition-fast);
+    color: var(--border-subtle);
+}
+.rating-star.active, .rating-star:hover { color: var(--accent-gold); }
+
+/* Comments */
+.comment-item {
+    display: flex; gap: 10px; padding: 12px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.comment-item:last-child { border-bottom: none; }
+.comment-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--brand-blue-soft); color: var(--brand-blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+}
+.comment-body { flex: 1; }
+.comment-author { font-size: 0.8rem; font-weight: 700; color: var(--text-main); }
+.comment-time { font-size: 0.7rem; color: var(--text-muted); }
+.comment-text { font-size: 0.875rem; color: var(--text-body); margin-top: 4px; line-height: 1.5; }
+
+/* Add comment */
+.add-comment-box { margin-top: 14px; }
+.add-comment-box textarea {
+    width: 100%; border: 1.5px solid var(--border-subtle);
+    border-radius: var(--radius-md); padding: 10px 14px;
+    font-family: inherit; font-size: 0.875rem; color: var(--text-main);
+    background: var(--bg-surface-2); resize: none; outline: none;
+    transition: var(--transition); line-height: 1.5;
+    min-height: 80px;
+}
+.add-comment-box textarea:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px var(--brand-blue-soft);
+    background: var(--bg-surface);
+}
+
+/* ══════════════════════════════════════════
+   Email Modal
+   ══════════════════════════════════════════ */
+.email-modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(6,8,12,0.65);
+    backdrop-filter: blur(6px);
+    z-index: 3000;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+}
+.email-modal-backdrop.open { display: flex; }
+
+.email-modal {
+    background: var(--bg-surface);
+    border-radius: 20px; width: 100%; max-width: 620px;
+    max-height: 88vh; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+    animation: slideUp 0.22s cubic-bezier(0.4,0,0.2,1);
+}
+.email-modal-header {
+    padding: 18px 22px; border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+}
+.email-modal-header h3 { font-size: 1rem; font-weight: 700; color: var(--text-main); margin: 0; }
+
+.email-modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+.email-modal-footer {
+    padding: 14px 22px; border-top: 1px solid var(--border-subtle);
+    display: flex; gap: 10px; justify-content: flex-end; flex-shrink: 0;
+}
+
+/* Template buttons */
+.email-templates { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tmpl-btn {
+    padding: 6px 12px; border-radius: 8px;
+    border: 1.5px solid var(--border-subtle);
+    background: transparent; font-family: inherit;
+    font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; transition: var(--transition);
+    color: var(--text-muted);
+}
+.tmpl-btn:hover { border-color: var(--brand-blue); color: var(--brand-blue); background: var(--brand-blue-soft); }
+.tmpl-btn.active { border-color: var(--brand-blue); color: var(--brand-blue); background: var(--brand-blue-soft); }
+
+.email-field { margin-bottom: 14px; }
+.email-field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
+.email-field input, .email-field textarea {
+    width: 100%; background: var(--bg-surface-2);
+    border: 1.5px solid var(--border-subtle);
+    border-radius: 10px; padding: 9px 13px;
+    font-family: inherit; font-size: 0.875rem; color: var(--text-main);
+    outline: none; transition: var(--transition);
+}
+.email-field input:focus, .email-field textarea:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px var(--brand-blue-soft);
+    background: var(--bg-surface);
+}
+.email-field textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
+
+/* Sending state */
+.btn-sending { opacity: 0.65; pointer-events: none; }
+
+/* Toast notification */
+.pipeline-toast {
+    position: fixed; bottom: 24px; inset-inline-end: 24px;
+    background: var(--text-main); color: var(--bg-surface);
+    padding: 12px 20px; border-radius: var(--radius-md);
+    font-size: 0.875rem; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 9999;
+    display: flex; align-items: center; gap: 10px;
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    pointer-events: none;
+}
+.pipeline-toast.show { transform: translateY(0); opacity: 1; }
+.pipeline-toast.success { background: var(--success); }
+.pipeline-toast.error   { background: var(--danger); }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .activity-panel { display: none; }
+    .topbar-divider { display: none; }
+    .info-grid { grid-template-columns: 1fr; }
+    .pipeline-topbar { padding: 10px 14px; gap: 8px; }
+}
+
+/* ── Horizontal Scroll Controls ── */
+.scroll-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.scroll-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-subtle);
+    background: var(--bg-surface-2);
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.85rem;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.scroll-btn:hover {
+    background: var(--brand-blue-soft);
+    color: var(--brand-blue);
+    border-color: var(--brand-blue);
+}
+.scroll-btn:active {
+    transform: scale(0.92);
+}
+.scroll-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+@media (max-width: 900px) {
+    .scroll-hint { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════
+     PIPELINE TOPBAR
+     ══════════════════════════════════════ -->
+<div class="pipeline-topbar">
+    <!-- Title -->
+    <div class="pipeline-title-group">
+        <div class="eyebrow"><i class="fas fa-layer-group"></i> Pipeline</div>
+        <h2>{% trans "تتبع المرشحين" %}</h2>
+    </div>
+
+    <div class="topbar-divider"></div>
+
+    <!-- Quick Search -->
+    <div class="pipeline-search">
+        <input type="text"
+               class="pipeline-search-input"
+               id="pipelineSearch"
+               placeholder="{% trans 'بحث بالاسم / الإيميل...' %}"
+               autocomplete="off">
+        <i class="fas fa-magnifying-glass pipeline-search-icon"></i>
+        <div class="search-results-dropdown" id="searchDropdown"></div>
+    </div>
+
+    <!-- Job Filter -->
+    <form method="get" id="jobFilterForm">
+        <select name="job_id"
+                class="pipeline-filter-select"
+                onchange="document.getElementById('jobFilterForm').submit()"
+                id="pipeline-job-filter">
+            <option value="">— {% trans "كل الوظائف" %} —</option>
+            {% for job in jobs %}
+            <option value="{{ job.id }}" {% if selected_job and selected_job.id == job.id %}selected{% endif %}>
+                {{ job.title }}
+            </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <!-- Action buttons -->
+    <div class="topbar-actions">
+        <!-- Scroll Controls -->
+        <div class="scroll-controls" id="scrollControls">
+            <span class="scroll-hint">
+                <i class="fas fa-arrows-left-right"></i>
+                {% trans "تمرير" %}
+            </span>
+            <button class="scroll-btn" id="btnScrollPrev" onclick="scrollBoard('prev')" title="{% trans 'السابق' %}">
+                <i class="fas fa-chevron-{% if request.LANGUAGE_CODE == 'ar' %}right{% else %}left{% endif %}"></i>
+            </button>
+            <button class="scroll-btn" id="btnScrollNext" onclick="scrollBoard('next')" title="{% trans 'التالي' %}">
+                <i class="fas fa-chevron-{% if request.LANGUAGE_CODE == 'ar' %}left{% else %}right{% endif %}"></i>
+            </button>
+        </div>
+        <div class="topbar-divider" style="height:24px;"></div>
+        <a href="{% url 'pipeline:link_candidate' %}" class="btn btn-secondary btn-sm" id="btn-link-candidate">
+            <i class="fas fa-link"></i>
+            {% trans "ربط مرشح" %}
+        </a>
+        <button class="btn btn-primary btn-sm" id="btn-toggle-activity"
+                onclick="toggleActivityPanel()"
+                title="{% trans 'الأنشطة الأخيرة' %}">
+            <i class="fas fa-bolt"></i>
+            {% trans "الأنشطة" %}
+        </button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MINI STATS STRIP
+     ══════════════════════════════════════ -->
+<div class="stats-strip">
+    <div class="stat-pill">
+        <div class="stat-pill-dot" style="background: var(--brand-blue);"></div>
+        <div>
+            <div class="stat-pill-label">{% trans "الإجمالي" %}</div>
+            <div class="stat-pill-value">{{ total_applications }}</div>
+        </div>
+    </div>
+    {% for s in stage_stats %}
+    <div class="stat-pill">
+        <div class="stat-pill-dot" style="background: hsl({{ forloop.counter0|add:1 }}00, 60%, 50%);"></div>
+        <div>
+            <div class="stat-pill-label">{{ s.name }}</div>
+            <div style="display:flex; align-items:baseline; gap:5px;">
+                <span class="stat-pill-value" id="stat-count-{{ forloop.counter0 }}">{{ s.count }}</span>
+                <span class="stat-pill-pct">({{ s.pct }}%)</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ══════════════════════════════════════
+     BOARD LAYOUT
+     ══════════════════════════════════════ -->
+<div class="pipeline-layout" id="pipelineLayout">
+
+    <!-- Board Columns -->
+    <div class="board-scroll" id="boardScroll">
+        {% for stage in stages %}
+        <div class="stage-column" data-stage-id="{{ stage.id }}">
+            <div class="stage-header">
+                <div class="stage-header-left">
+                    <div class="stage-color-dot" style="background: {{ stage.color }};"></div>
+                    <span class="stage-name">{{ stage.name }}</span>
+                </div>
+                <span class="stage-badge" id="stage-count-{{ stage.id }}">{{ stage.stage_applications|length }}</span>
+            </div>
+            <div class="stage-body" id="stage-{{ stage.id }}" data-stage-id="{{ stage.id }}">
+                {% for app in stage.stage_applications %}
+                <div class="app-card {% if app.is_shortlisted %}shortlisted{% endif %}"
+                     data-app-id="{{ app.id }}"
+                     data-candidate-name="{{ app.candidate.full_name|escapejs }}"
+                     id="app-card-{{ app.id }}">
+                    <div class="drag-indicator">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
+
+                    <div class="cand-avatar-name">
+                        <div class="cand-avatar-sm">{{ app.candidate.full_name|slice:":1"|upper }}</div>
+                        <div>
+                            <div class="cand-name">{{ app.candidate.full_name }}</div>
+                            {% if app.candidate.current_title %}
+                            <div class="cand-title">{{ app.candidate.current_title }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="cand-job-tag">
+                        <i class="fas fa-briefcase" style="font-size: 0.65rem; color: var(--brand-blue);"></i>
+                        {{ app.job.title }}
+                    </div>
+
+                    <div class="card-meta">
+                        <div class="star-rating">
+                            {% for i in "12345" %}
+                            <i class="star {% if app.avg_score and app.avg_score >= forloop.counter %}fas fa-star{% else %}far fa-star empty{% endif %}"></i>
+                            {% endfor %}
+                        </div>
+
+                        <span class="shortlist-badge">
+                            <i class="fas fa-star" style="font-size:0.6rem;"></i>
+                            مختار
+                        </span>
+
+                        <div class="card-comment-count">
+                            <i class="fas fa-comment" style="font-size: 0.65rem;"></i>
+                            {{ app.comments.count }}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="column-empty">
+                    <i class="fas fa-inbox"></i>
+                    {% trans "لا يوجد مرشحون" %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ══ Activity Panel (Collapsible) ══ -->
+    <aside class="activity-panel" id="activityPanel">
+        <div class="activity-panel-header">
+            <i class="fas fa-bolt"></i>
+            {% trans "الأنشطة الأخيرة" %}
+            <button class="modal-close" onclick="toggleActivityPanel()" style="margin-inline-start: auto;" aria-label="close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="act-tabs">
+            <button class="act-tab active" data-filter="all" onclick="filterActivities('all', this)">{% trans "الكل" %}</button>
+            <button class="act-tab" data-filter="move_stage" onclick="filterActivities('move_stage', this)">{% trans "تنقل" %}</button>
+            <button class="act-tab" data-filter="comment" onclick="filterActivities('comment', this)">{% trans "تعليق" %}</button>
+            <button class="act-tab" data-filter="rate" onclick="filterActivities('rate', this)">{% trans "تقييم" %}</button>
+        </div>
+
+        <!-- Activity list -->
+        <div class="activity-list" id="activityList">
+            {% for act in recent_activities %}
+            <div class="act-item" data-action="{{ act.action }}">
+                <div class="act-avatar">
+                    {% if act.user %}{{ act.user.username|slice:":1"|upper }}{% else %}?{% endif %}
+                </div>
+                <div class="act-body">
+                    <div class="act-action-tag {% if act.action == 'move_stage' %}move{% elif act.action == 'rate' %}rate{% elif act.action == 'reject' %}reject{% elif act.action == 'accept' %}accept{% endif %}">
+                        {{ act.get_action_display }}
+                    </div>
+                    <div class="act-desc">{{ act.description|translate_activity }}</div>
+                    <div class="act-time">
+                        <i class="fas fa-clock" style="font-size: 0.6rem;"></i>
+                        {{ act.created_at|timesince }}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align:center; padding: 36px 16px; color: var(--text-muted);">
+                <i class="fas fa-clock-rotate-left" style="font-size: 1.8rem; opacity: 0.3; display: block; margin-bottom: 10px;"></i>
+                {% trans "لا توجد أنشطة بعد" %}
+            </div>
+            {% endfor %}
+        </div>
+    </aside>
+</div>
+
+<!-- ══════════════════════════════════════
+     CANDIDATE DETAIL MODAL
+     ══════════════════════════════════════ -->
+<div class="modal-backdrop" id="appModalBackdrop" onclick="handleBackdropClick(event)">
+    <div class="cand-modal" id="appModal">
+        <div class="modal-color-bar"></div>
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <div class="modal-cand-avatar" id="modalAvatar">A</div>
+            <div class="modal-cand-info">
+                <h2 class="modal-cand-name" id="modalCandName">—</h2>
+                <div class="modal-cand-title" id="modalCandTitle"></div>
+                <div class="modal-cand-meta" id="modalCandMeta"></div>
+            </div>
+            <div class="modal-header-actions">
+                <button class="btn-star" id="modalShortlistBtn" onclick="toggleShortlistModal()" title="{% trans 'إضافة للمختارين' %}">
+                    <i class="fas fa-star"></i>
+                </button>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="quick-actions-row">
+            <button class="btn btn-sm btn-secondary" onclick="openEmailModal('interview')">
+                <i class="fas fa-calendar-check"></i> {% trans "دعوة مقابلة" %}
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="openEmailModal('email')">
+                <i class="fas fa-envelope"></i> {% trans "إرسال إيميل" %}
+            </button>
+            <button class="btn btn-sm btn-secondary" id="btnViewCV" onclick="viewCV()" style="display:none;">
+                <i class="fas fa-file-pdf"></i> {% trans "السيرة الذاتية" %}
+            </button>
+            <div style="margin-inline-start: auto; display: flex; align-items: center; gap: 8px;">
+                <label style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600; white-space: nowrap;">{% trans "نقل إلى:" %}</label>
+                <select class="stage-move-select" id="modalStageSelect" onchange="moveToStage(this.value)">
+                    <option value="">{% trans "اختر مرحلة..." %}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="modal-tabs">
+            <button class="modal-tab active" onclick="switchTab('info', this)">
+                <i class="fas fa-user" style="margin-inline-end: 5px; font-size: 0.8rem;"></i>{% trans "معلومات" %}
+            </button>
+            <button class="modal-tab" onclick="switchTab('rating', this)">
+                <i class="fas fa-star" style="margin-inline-end: 5px; font-size: 0.8rem;"></i>{% trans "التقييم" %}
+            </button>
+            <button class="modal-tab" onclick="switchTab('comments', this)">
+                <i class="fas fa-comments" style="margin-inline-end: 5px; font-size: 0.8rem;"></i>
+                {% trans "التعليقات" %} <span id="commentCount" style="background: var(--brand-blue-soft); color: var(--brand-blue); border-radius: 999px; padding: 1px 6px; font-size: 0.68rem; margin-inline-start: 4px;">0</span>
+            </button>
+            <button class="modal-tab" onclick="switchTab('notes', this)">
+                <i class="fas fa-sticky-note" style="margin-inline-end: 5px; font-size: 0.8rem;"></i>{% trans "ملاحظات" %}
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+            <!-- Info Tab -->
+            <div class="tab-panel active" id="tab-info">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label><i class="fas fa-envelope" style="margin-inline-end:4px;"></i>{% trans "البريد الإلكتروني" %}</label>
+                        <p id="infoEmail">—</p>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="fas fa-phone" style="margin-inline-end:4px;"></i>{% trans "رقم الهاتف" %}</label>
+                        <p id="infoPhone">—</p>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="fas fa-map-marker-alt" style="margin-inline-end:4px;"></i>{% trans "الموقع" %}</label>
+                        <p id="infoLocation">—</p>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="fas fa-clock" style="margin-inline-end:4px;"></i>{% trans "سنوات الخبرة" %}</label>
+                        <p id="infoExperience">—</p>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="fas fa-briefcase" style="margin-inline-end:4px;"></i>{% trans "الوظيفة المتقدم لها" %}</label>
+                        <p id="infoJobTitle">—</p>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="fas fa-calendar" style="margin-inline-end:4px;"></i>{% trans "تاريخ التقديم" %}</label>
+                        <p id="infoCreatedAt">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating Tab -->
+            <div class="tab-panel" id="tab-rating">
+                <div style="margin-bottom: 20px;">
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">{% trans "متوسط تقييم الفريق:" %}
+                        <strong id="avgRatingDisplay" style="color: var(--accent-gold); font-size: 1.1rem;">—</strong>
+                    </p>
+                    <div class="rating-stars" id="avgStarDisplay"></div>
+                </div>
+                <div id="myRatingSection">
+                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-body); margin-bottom: 10px;">{% trans "تقييمك:" %}</p>
+                    <div class="rating-stars" id="interactiveStars">
+                        {% for i in "12345" %}
+                        <i class="fas fa-star rating-star" data-score="{{ forloop.counter }}" onclick="submitRating({{ forloop.counter }})"></i>
+                        {% endfor %}
+                    </div>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px;" id="myRatingText">{% trans "لم تقيّم بعد" %}</p>
+                </div>
+            </div>
+
+            <!-- Comments Tab -->
+            <div class="tab-panel" id="tab-comments">
+                <div id="commentsList"></div>
+                <div class="add-comment-box" id="addCommentBox">
+                    <textarea id="commentText" placeholder="{% trans 'اكتب تعليقك هنا...' %}" rows="3"></textarea>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                        <button class="btn btn-primary btn-sm" onclick="submitComment()" id="btnSubmitComment">
+                            <i class="fas fa-paper-plane"></i> {% trans "إرسال" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Tab -->
+            <div class="tab-panel" id="tab-notes">
+                <div style="background: var(--bg-surface-2); border-radius: var(--radius-md); padding: 16px;">
+                    <p style="font-size: 0.85rem; color: var(--text-body); line-height: 1.7; margin: 0;" id="infoNotes">—</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     EMAIL MODAL
+     ══════════════════════════════════════ -->
+<div class="email-modal-backdrop" id="emailModalBackdrop" onclick="handleEmailBackdropClick(event)">
+    <div class="email-modal">
+        <div class="email-modal-header">
+            <h3><i class="fas fa-envelope" style="color: var(--brand-blue); margin-inline-end: 8px;"></i>{% trans "إرسال بريد إلكتروني" %}</h3>
+            <button class="modal-close" onclick="closeEmailModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="email-modal-body">
+            <!-- Template chooser -->
+            <div class="email-templates">
+                <button class="tmpl-btn" onclick="loadTemplate('interview', this)">
+                    <i class="fas fa-calendar-check" style="margin-inline-end:5px;"></i>{% trans "دعوة مقابلة" %}
+                </button>
+                <button class="tmpl-btn" onclick="loadTemplate('offer', this)">
+                    <i class="fas fa-file-contract" style="margin-inline-end:5px;"></i>{% trans "عرض وظيفي" %}
+                </button>
+                <button class="tmpl-btn" onclick="loadTemplate('rejection', this)">
+                    <i class="fas fa-times-circle" style="margin-inline-end:5px;"></i>{% trans "إشعار رفض" %}
+                </button>
+                <button class="tmpl-btn" onclick="loadTemplate('followup', this)">
+                    <i class="fas fa-reply" style="margin-inline-end:5px;"></i>{% trans "متابعة" %}
+                </button>
+            </div>
+
+            <!-- Email fields -->
+            <div class="email-field">
+                <label>{% trans "إلى" %}</label>
+                <input type="email" id="emailTo" readonly placeholder="email@example.com">
+            </div>
+            <div class="email-field">
+                <label>{% trans "الموضوع" %}</label>
+                <input type="text" id="emailSubject" placeholder="{% trans 'موضوع الرسالة' %}">
+            </div>
+            <div class="email-field">
+                <label>{% trans "نص الرسالة" %}</label>
+                <textarea id="emailBody" rows="7" placeholder="{% trans 'اكتب نص الرسالة هنا...' %}"></textarea>
+            </div>
+        </div>
+        <div class="email-modal-footer">
+            <button class="btn btn-secondary" onclick="closeEmailModal()">{% trans "إلغاء" %}</button>
+            <button class="btn btn-primary" id="btnSendEmail" onclick="sendEmail()">
+                <i class="fas fa-paper-plane"></i> {% trans "إرسال" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="pipeline-toast" id="pipelineToast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMsg">تم بنجاح</span>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════════
+   Pipeline Board — Full Feature JavaScript
+   ══════════════════════════════════════════════════ */
+
+const CSRF = "{{ csrf_token }}";
+const SELECTED_JOB_ID = "{{ selected_job.id|default:'' }}";
+
+const URLS = {
+    updateStage: "{% url 'pipeline:update_stage' 0 %}",
+    application: "{% url 'pipeline:application_detail' 0 %}",
+    toggleShortlist: "{% url 'pipeline:toggle_shortlist' 0 %}",
+    rate: "{% url 'pipeline:rate_application' 0 %}",
+    addComment: "{% url 'pipeline:add_comment' 0 %}",
+    search: "{% url 'pipeline:search' %}"
+};
+
+function getEndpoint(template, id) {
+    return template.replace('0', id);
+}
+
+function prependActivity(action, desc) {
+    const list = document.getElementById('activityList');
+    if(!list) return;
+    const emptyMsg = list.querySelector('div[style*="text-align:center"]');
+    if(emptyMsg) emptyMsg.remove();
+    
+    let tagHtml = ''; let bgColor = ''; let textColor = '';
+    if(action === 'move_stage') { tagHtml = 'تنقل'; bgColor = 'rgba(139,92,246,0.1)'; textColor = '#8B5CF6'; }
+    else if (action === 'rate') { tagHtml = 'تقييم'; bgColor = 'var(--accent-gold-soft)'; textColor = 'var(--accent-gold)'; }
+    else if (action === 'comment'){ tagHtml = 'تعليق'; bgColor = 'var(--brand-blue-soft)'; textColor = 'var(--brand-blue)'; }
+    else { tagHtml = 'تحديث'; bgColor = 'var(--bg-surface-2)'; textColor = 'var(--text-muted)'; }
+    
+    const initials = 'أ'; // Using 'Me' initials
+    const h = `
+        <div class="act-item" data-action="${action}" style="animation: fadeIn 0.4s ease; background: var(--brand-blue-xsoft);">
+            <div class="act-avatar">${initials}</div>
+            <div class="act-body">
+                <div class="act-action-tag" style="background: ${bgColor}; color: ${textColor}; padding: 1px 6px; font-size: 0.65rem; border-radius: 4px; display: inline-flex;">${tagHtml}</div>
+                <div class="act-desc">${desc}</div>
+                <div class="act-time"><i class="fas fa-clock" style="font-size:0.6rem;"></i> الآن</div>
+            </div>
+        </div>
+    `;
+    list.insertAdjacentHTML('afterbegin', h);
+}
+
+/* ─── State ─── */
+let currentAppId = null;
+let currentAppData = null;
+let activityPanelOpen = false;   // start collapsed
+
+/* ─── Horizontal Scroll ─── */
+function scrollBoard(dir) {
+    const board = document.getElementById('boardScroll');
+    if (board) {
+        const isRtl = document.documentElement.dir === 'rtl';
+        let amount = 300;
+        if (dir === 'next') {
+            amount = isRtl ? -300 : 300;
+        } else {
+            amount = isRtl ? 300 : -300;
+        }
+        board.scrollBy({ left: amount, behavior: 'smooth' });
+    }
+}
+
+/* ─── Init ─── */
+document.addEventListener('DOMContentLoaded', () => {
+    initSortable();
+    initSearch();
+    // Keep panel closed by default on first load
+    const panel = document.getElementById('activityPanel');
+    if (panel) panel.classList.add('collapsed');
+    activityPanelOpen = false;
+});
+
+/* ══ SORTABLE DRAG & DROP ══ */
+function initSortable() {
+    document.querySelectorAll('.stage-body').forEach(col => {
+        Sortable.create(col, {
+            group: 'pipeline',
+            animation: 180,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            delay: 50,
+            delayOnTouchOnly: true,
+
+            onStart(evt) {
+                document.querySelectorAll('.stage-column').forEach(c => c.classList.add('drag-over-target'));
+            },
+            onEnd(evt) {
+                document.querySelectorAll('.stage-column').forEach(c => c.classList.remove('drag-over-target', 'drag-over'));
+                const appId = evt.item.dataset.appId;
+                const newStageId = evt.to.dataset.stageId;
+                const oldStageId = evt.from.dataset.stageId;
+
+                updateStageCounts();
+
+                if (newStageId === oldStageId && evt.oldIndex === evt.newIndex) return;
+
+                fetch(getEndpoint(URLS.updateStage, appId), {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `stage_id=${newStageId}`
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(`تم النقل إلى: ${data.stage}`, 'success');
+                        const candName = evt.item.dataset.candidateName || 'مرشح';
+                        prependActivity('move_stage', `تم نقل ${candName} إلى ${data.stage}`);
+                    } else {
+                        showToast(data.error || 'حدث خطأ في النقل', 'error');
+                        // Revert UI move on backend rejection
+                        evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+                        updateStageCounts();
+                    }
+                })
+                .catch(() => {
+                    showToast('خطأ في الاتصال', 'error');
+                    evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+                    updateStageCounts();
+                });
+            },
+
+            onMove(evt) {
+                // Highlight target column
+                document.querySelectorAll('.stage-column').forEach(c => c.classList.remove('drag-over'));
+                evt.to.closest('.stage-column').classList.add('drag-over');
+            }
+        });
+    });
+}
+
+function updateStageCounts() {
+    document.querySelectorAll('.stage-body').forEach(body => {
+        const stageId = body.dataset.stageId;
+        const count = body.querySelectorAll('.app-card').length;
+        const badge = document.getElementById('stage-count-' + stageId);
+        if (badge) {
+            badge.textContent = count;
+            badge.style.transform = 'scale(1.3)';
+            setTimeout(() => badge.style.transform = '', 300);
+        }
+        // Remove or add empty state
+        const empty = body.querySelector('.column-empty');
+        if (count > 0 && empty) empty.remove();
+    });
+}
+
+/* ══ CARD CLICK → MODAL ══ */
+document.addEventListener('click', e => {
+    const card = e.target.closest('.app-card');
+    if (card && !e.target.closest('.drag-indicator')) {
+        openModal(card.dataset.appId);
+    }
+});
+
+async function openModal(appId) {
+    currentAppId = appId;
+    const backdrop = document.getElementById('appModalBackdrop');
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    // Show loading state
+    document.getElementById('modalCandName').textContent = '...';
+
+    try {
+        const r = await fetch(getEndpoint(URLS.application, appId));
+        const data = await r.json();
+        currentAppData = data;
+        populateModal(data);
+    } catch (e) {
+        showToast('خطأ في تحميل البيانات', 'error');
+        closeModal();
+    }
+}
+
+function populateModal(data) {
+    const c = data.candidate;
+    const initials = c.full_name.trim()[0] || '?';
+
+    document.getElementById('modalAvatar').textContent = initials.toUpperCase();
+    document.getElementById('modalCandName').textContent = c.full_name;
+    document.getElementById('modalCandTitle').textContent = c.current_title || '';
+
+    // Meta chips
+    const metaHtml = [
+        c.email ? `<span class="modal-meta-chip"><i class="fas fa-envelope"></i>${c.email}</span>` : '',
+        c.phone ? `<span class="modal-meta-chip"><i class="fas fa-phone"></i>${c.phone}</span>` : '',
+        c.location ? `<span class="modal-meta-chip"><i class="fas fa-map-marker-alt"></i>${c.location}</span>` : '',
+        `<span class="modal-meta-chip" style="background: var(--brand-blue-soft); color: var(--brand-blue);">
+            <i class="fas fa-layer-group"></i>${data.current_stage.name}
+         </span>`,
+    ].join('');
+    document.getElementById('modalCandMeta').innerHTML = metaHtml;
+
+    // Shortlist button
+    const shortBtn = document.getElementById('modalShortlistBtn');
+    shortBtn.classList.toggle('active', data.is_shortlisted);
+
+    // Info tab
+    document.getElementById('infoEmail').textContent = c.email || '—';
+    document.getElementById('infoPhone').textContent = c.phone || '—';
+    document.getElementById('infoLocation').textContent = c.location || '—';
+    document.getElementById('infoExperience').textContent = c.years_of_experience ? `${c.years_of_experience} سنوات` : '—';
+    document.getElementById('infoJobTitle').textContent = data.job.title || '—';
+    document.getElementById('infoCreatedAt').textContent = data.created_at || '—';
+    document.getElementById('infoNotes').textContent = c.notes || 'لا توجد ملاحظات.';
+
+    // CV button
+    const cvBtn = document.getElementById('btnViewCV');
+    if (c.cv_file) {
+        cvBtn.style.display = 'inline-flex';
+        cvBtn.dataset.url = c.cv_file;
+    } else {
+        cvBtn.style.display = 'none';
+    }
+
+    // Stage select
+    const stageSelect = document.getElementById('modalStageSelect');
+    stageSelect.innerHTML = '<option value="">اختر مرحلة...</option>';
+    data.stages.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name;
+        if (s.id === data.current_stage.id) opt.selected = true;
+        stageSelect.appendChild(opt);
+    });
+
+    // Ratings
+    renderRatings(data.avg_score, data.my_rating, data.permissions);
+
+    // Comments
+    renderComments(data.comments, data.permissions.can_comment);
+    document.getElementById('commentCount').textContent = data.comments.length;
+
+    // Permissions
+    if (!data.permissions.can_comment) {
+        document.getElementById('addCommentBox').style.display = 'none';
+    }
+    if (!data.permissions.can_rate) {
+        document.getElementById('myRatingSection').style.opacity = '0.5';
+        document.getElementById('myRatingSection').style.pointerEvents = 'none';
+    }
+
+    // Email
+    document.getElementById('emailTo').value = c.email || '';
+}
+
+function renderRatings(avgScore, myScore, perms) {
+    document.getElementById('avgRatingDisplay').textContent = avgScore ? avgScore.toFixed(1) : '—';
+    const avgStars = document.getElementById('avgStarDisplay');
+    avgStars.innerHTML = [1,2,3,4,5].map(i =>
+        `<span style="color: ${i <= avgScore ? 'var(--accent-gold)' : 'var(--border-subtle)'}; font-size: 1.1rem;">★</span>`
+    ).join('');
+
+    const stars = document.querySelectorAll('#interactiveStars .rating-star');
+    stars.forEach((star, idx) => {
+        star.classList.toggle('active', idx < myScore);
+    });
+    document.getElementById('myRatingText').textContent = myScore ? `تقييمك: ${myScore}/5` : 'لم تقيّم بعد';
+}
+
+function renderComments(comments, canComment) {
+    const list = document.getElementById('commentsList');
+    if (!comments.length) {
+        list.innerHTML = `<div style="text-align:center; padding:32px 0; color:var(--text-muted);">
+            <i class="fas fa-comments" style="font-size:1.8rem; opacity:0.3; display:block; margin-bottom:10px;"></i>
+            لا توجد تعليقات بعد
+        </div>`;
+        return;
+    }
+    list.innerHTML = comments.map(c => `
+        <div class="comment-item">
+            <div class="comment-avatar">${c.author_initials}</div>
+            <div class="comment-body">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="comment-author">${c.author}</span>
+                    <span class="comment-time">${c.created_at}</span>
+                </div>
+                <div class="comment-text">${c.text}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function closeModal() {
+    document.getElementById('appModalBackdrop').classList.remove('open');
+    document.body.style.overflow = '';
+    currentAppId = null;
+    currentAppData = null;
+    // Reset to first tab
+    switchTab('info', document.querySelector('.modal-tab'));
+}
+
+function handleBackdropClick(e) {
+    if (e.target === document.getElementById('appModalBackdrop')) closeModal();
+}
+
+/* ── Tab switching ── */
+function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.modal-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    btn.classList.add('active');
+}
+
+/* ── Shortlist ── */
+async function toggleShortlistModal() {
+    if (!currentAppId) return;
+    const r = await fetch(getEndpoint(URLS.toggleShortlist, currentAppId), {
+        method: 'POST', headers: { 'X-CSRFToken': CSRF }
+    });
+    const data = await r.json();
+    if (data.success) {
+        const btn = document.getElementById('modalShortlistBtn');
+        btn.classList.toggle('active', data.is_shortlisted);
+        const card = document.getElementById('app-card-' + currentAppId);
+        if (card) {
+            card.classList.toggle('shortlisted', data.is_shortlisted);
+            const badge = card.querySelector('.shortlist-badge');
+            if (badge) badge.style.display = data.is_shortlisted ? 'inline-flex' : 'none';
+        }
+        showToast(data.is_shortlisted ? 'تم إضافته للمختارين ⭐' : 'تم إزالته من المختارين', 'success');
+    }
+}
+
+/* ── Move Stage from modal ── */
+async function moveToStage(newStageId) {
+    if (!currentAppId || !newStageId) return;
+    const r = await fetch(getEndpoint(URLS.updateStage, currentAppId), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `stage_id=${newStageId}`
+    });
+    const data = await r.json();
+    if (data.success) {
+        showToast(`تم النقل إلى: ${data.stage}`, 'success');
+        const candName = currentAppData ? currentAppData.candidate.full_name : 'مرشح';
+        prependActivity('move_stage', `تم نقل ${candName} إلى ${data.stage}`);
+        // Move card in DOM
+        const card = document.getElementById('app-card-' + currentAppId);
+        const targetBody = document.getElementById('stage-' + newStageId);
+        if (card && targetBody) {
+            const emptyMsg = targetBody.querySelector('.column-empty');
+            if (emptyMsg) emptyMsg.remove();
+            targetBody.prepend(card);
+            card.style.animation = 'none';
+            card.offsetHeight; // reflow
+            card.style.animation = '';
+        }
+        updateStageCounts();
+        closeModal();
+    }
+}
+
+/* ── Rating ── */
+async function submitRating(score) {
+    if (!currentAppId) return;
+
+    // Update stars immediately
+    document.querySelectorAll('#interactiveStars .rating-star').forEach((s, i) => {
+        s.classList.toggle('active', i < score);
+    });
+
+    const r = await fetch(getEndpoint(URLS.rate, currentAppId), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `score=${score}`
+    });
+    const data = await r.json();
+    if (data.success) {
+        document.getElementById('avgRatingDisplay').textContent = data.avg_score.toFixed(1);
+        document.getElementById('myRatingText').textContent = `تقييمك: ${data.my_score}/5`;
+        showToast('تم حفظ التقييم ⭐', 'success');
+        const candName = currentAppData ? currentAppData.candidate.full_name : 'المرشح';
+        prependActivity('rate', `تم تقييم ${candName} بـ ${score}/5`);
+
+        // Update card stars
+        const card = document.getElementById('app-card-' + currentAppId);
+        if (card) {
+            const stars = card.querySelectorAll('.star');
+            stars.forEach((s, i) => {
+                s.className = `star ${i < data.avg_score ? 'fas fa-star' : 'far fa-star empty'}`;
+            });
+        }
+    }
+}
+
+/* ── Interactive star hover ── */
+document.querySelectorAll('#interactiveStars .rating-star').forEach((star, idx) => {
+    star.addEventListener('mouseenter', () => {
+        document.querySelectorAll('#interactiveStars .rating-star').forEach((s, i) => {
+            s.classList.toggle('active', i <= idx);
+        });
+    });
+    star.addEventListener('mouseleave', () => {
+        const myRating = currentAppData ? currentAppData.my_rating : 0;
+        document.querySelectorAll('#interactiveStars .rating-star').forEach((s, i) => {
+            s.classList.toggle('active', i < myRating);
+        });
+    });
+});
+
+/* ── Comment ── */
+async function submitComment() {
+    if (!currentAppId) return;
+    const text = document.getElementById('commentText').value.trim();
+    if (!text) return;
+
+    const btn = document.getElementById('btnSubmitComment');
+    btn.disabled = true; btn.classList.add('btn-sending');
+
+    const r = await fetch(getEndpoint(URLS.addComment, currentAppId), {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `text=${encodeURIComponent(text)}`
+    });
+    const data = await r.json();
+    btn.disabled = false; btn.classList.remove('btn-sending');
+
+    if (data.success) {
+        document.getElementById('commentText').value = '';
+        // Prepend new comment to list
+        const c = data.comment;
+        const initials = c.author[0].toUpperCase();
+        const newComment = document.createElement('div');
+        newComment.className = 'comment-item';
+        newComment.innerHTML = `
+            <div class="comment-avatar">${initials}</div>
+            <div class="comment-body">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="comment-author">${c.author}</span>
+                    <span class="comment-time">${c.created_at}</span>
+                </div>
+                <div class="comment-text">${c.text}</div>
+            </div>
+        `;
+        const list = document.getElementById('commentsList');
+        const emptyMsg = list.querySelector('div[style*="text-align:center"]');
+        if (emptyMsg) emptyMsg.remove();
+        list.prepend(newComment);
+
+        // Update count
+        const countEl = document.getElementById('commentCount');
+        countEl.textContent = parseInt(countEl.textContent) + 1;
+
+        // Update card
+        const card = document.getElementById('app-card-' + currentAppId);
+        if (card) {
+            const countEl2 = card.querySelector('.card-comment-count');
+            if (countEl2) countEl2.innerHTML = `<i class="fas fa-comment" style="font-size:0.65rem;"></i> ${parseInt(countEl2.innerText)+1}`;
+        }
+
+        showToast('تم إضافة التعليق ✓', 'success');
+        const candName = currentAppData ? currentAppData.candidate.full_name : 'المرشح';
+        prependActivity('comment', `تم إضافة تعليق لـ ${candName}`);
+    }
+}
+
+/* ── CV Viewer ── */
+function viewCV() {
+    const url = document.getElementById('btnViewCV').dataset.url;
+    if (url) window.open(url, '_blank');
+}
+
+/* ══ ACTIVITY PANEL ══ */
+function toggleActivityPanel() {
+    const panel = document.getElementById('activityPanel');
+    activityPanelOpen = !activityPanelOpen;
+    panel.classList.toggle('collapsed', !activityPanelOpen);
+}
+
+function filterActivities(filter, btn) {
+    document.querySelectorAll('.act-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.act-item').forEach(item => {
+        if (filter === 'all' || item.dataset.action === filter) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+/* ══ SEARCH ══ */
+function initSearch() {
+    const input = document.getElementById('pipelineSearch');
+    const dropdown = document.getElementById('searchDropdown');
+    let timer;
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        const q = input.value.trim();
+        if (!q) { dropdown.style.display = 'none'; return; }
+
+        timer = setTimeout(() => {
+            const params = new URLSearchParams({ q });
+            if (SELECTED_JOB_ID) params.append('job_id', SELECTED_JOB_ID);
+
+            fetch(`${URLS.search}?${params}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.results.length) {
+                        dropdown.innerHTML = '<div class="search-result-item" style="color:var(--text-muted);">لا توجد نتائج</div>';
+                    } else {
+                        dropdown.innerHTML = data.results.map(r => `
+                            <div class="search-result-item" onclick="highlightCard(${r.app_id})">
+                                <div class="search-result-name">${r.candidate_name}</div>
+                                <div class="search-result-meta">${r.job_title} · ${r.stage_name}</div>
+                            </div>
+                        `).join('');
+                    }
+                    dropdown.style.display = 'block';
+                });
+        }, 300);
+    });
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+}
+
+function highlightCard(appId) {
+    document.getElementById('searchDropdown').style.display = 'none';
+    document.getElementById('pipelineSearch').value = '';
+
+    const card = document.getElementById('app-card-' + appId);
+    if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.style.outline = '3px solid var(--brand-blue)';
+        card.style.outlineOffset = '3px';
+        setTimeout(() => { card.style.outline = ''; card.style.outlineOffset = ''; }, 2000);
+    } else {
+        // Card might be in a different view — open modal
+        openModal(appId);
+    }
+}
+
+/* ══ EMAIL MODAL ══ */
+const EMAIL_TEMPLATES = {
+    interview: {
+        subject: 'دعوة لمقابلة عمل',
+        body: `عزيزي / عزيزتي {name}،
+
+يسعدنا دعوتك لحضور مقابلة عمل لشغل وظيفة {job} في شركتنا.
+
+سيتم التواصل معك قريباً لتحديد موعد مناسب.
+
+مع تحياتنا،
+فريق التوظيف`
+    },
+    offer: {
+        subject: 'عرض وظيفي — {job}',
+        body: `عزيزي / عزيزتي {name}،
+
+يسعدنا إبلاغك بأننا نودّ تقديم عرض وظيفي لك لشغل منصب {job}.
+
+يسعدنا الانضمام إلى فريقنا، ونتطلع إلى مناقشة تفاصيل العرض معك.
+
+مع تحياتنا،
+فريق التوظيف`
+    },
+    rejection: {
+        subject: 'نتيجة طلب التوظيف',
+        body: `عزيزي / عزيزتي {name}،
+
+نشكرك على اهتمامك بالتقدم لوظيفة {job} لدينا، وعلى الوقت الذي أمضيته في عملية التوظيف.
+
+بعد مراجعة دقيقة لجميع المتقدمين، أودّ إعلامك بأننا اخترنا مرشحاً آخر يتناسب بشكل أوثق مع متطلبات المنصب.
+
+نتمنى لك التوفيق في مسيرتك المهنية.
+
+مع تحياتنا،
+فريق التوظيف`
+    },
+    followup: {
+        subject: 'متابعة طلبك الوظيفي',
+        body: `عزيزي / عزيزتي {name}،
+
+نتواصل معك للمتابعة بشأن طلبك لوظيفة {job}.
+
+يسعدنا التواصل معك ومناقشة الخطوات القادمة.
+
+مع تحياتنا،
+فريق التوظيف`
+    }
+};
+
+function openEmailModal(type) {
+    const modal = document.getElementById('emailModalBackdrop');
+    modal.classList.add('open');
+    if (type !== 'email') loadTemplate(type, null);
+}
+
+function closeEmailModal() {
+    document.getElementById('emailModalBackdrop').classList.remove('open');
+}
+
+function handleEmailBackdropClick(e) {
+    if (e.target === document.getElementById('emailModalBackdrop')) closeEmailModal();
+}
+
+function loadTemplate(type, btn) {
+    document.querySelectorAll('.tmpl-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    const tmpl = EMAIL_TEMPLATES[type];
+    if (!tmpl || !currentAppData) return;
+
+    const name = currentAppData.candidate.full_name;
+    const job = currentAppData.job.title;
+
+    document.getElementById('emailSubject').value = tmpl.subject.replace(/{name}/g, name).replace(/{job}/g, job);
+    document.getElementById('emailBody').value = tmpl.body.replace(/{name}/g, name).replace(/{job}/g, job);
+    document.getElementById('emailTo').value = currentAppData.candidate.email || '';
+}
+
+async function sendEmail() {
+    const to = document.getElementById('emailTo').value.trim();
+    const subject = document.getElementById('emailSubject').value.trim();
+    const body = document.getElementById('emailBody').value.trim();
+
+    if (!to || !subject || !body) {
+        showToast('الرجاء ملء جميع الحقول', 'error');
+        return;
+    }
+    if (!to.includes('@')) {
+        showToast('البريد الإلكتروني غير صحيح', 'error');
+        return;
+    }
+
+    // Create mailto link as fallback (Django email sending requires backend setup)
+    const mailtoLink = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+
+    showToast('تم فتح تطبيق البريد الإلكتروني', 'success');
+    closeEmailModal();
+}
+
+/* ══ TOAST ══ */
+let toastTimer;
+function showToast(msg, type = 'success') {
+    const toast = document.getElementById('pipelineToast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.className = `pipeline-toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* ── ESC key ── */
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        if (document.getElementById('emailModalBackdrop').classList.contains('open')) {
+            closeEmailModal();
+        } else if (document.getElementById('appModalBackdrop').classList.contains('open')) {
+            closeModal();
+        }
+    }
+});
+</script>
+{% endblock %}

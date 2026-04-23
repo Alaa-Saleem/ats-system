@@ -1,0 +1,127 @@
+{% extends "superadmin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Companies" %}{% endblock %}
+{% block page_title %}{% trans "Companies Management" %}{% endblock %}
+{% block page_subtitle %}{{ page_obj.paginator.count }} {% trans "companies in the system" %}{% endblock %}
+
+{% block content %}
+
+<div class="sa-panel">
+
+  <form method="get" class="sa-filters">
+    <i class="fas fa-search" style="color:var(--sa-text-muted);"></i>
+    <input type="text" name="q" value="{{ q }}" placeholder="{% trans 'Search company name or industry…' %}"
+           class="sa-filter-input" style="min-width:260px;">
+    <button type="submit" class="sa-btn sa-btn-primary sa-btn-sm">{% trans "Search" %}</button>
+    {% if q %}
+    <a href="{% url 'superadmin:companies_list' %}" class="sa-btn sa-btn-ghost sa-btn-sm">{% trans "Clear" %}</a>
+    {% endif %}
+
+    <div class="sa-bulk-sel" id="saBulkSel">
+      <span class="sa-fs-sm sa-text-muted"><span id="saBulkCount">0</span> {% trans "selected" %}</span>
+      <button type="button" onclick="saSubmitBulk('soft_delete')" class="sa-btn sa-btn-danger sa-btn-sm">
+        <i class="fas fa-trash"></i> {% trans "Delete Selected" %}
+      </button>
+    </div>
+  </form>
+
+  <form id="saBulkForm" action="{% url 'superadmin:bulk_action' %}" method="post" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="model" value="company">
+    <input type="hidden" name="action" value="">
+  </form>
+
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead>
+        <tr>
+          <th class="check-col"><input type="checkbox" class="sa-checkbox" onchange="saToggleAll(this)"></th>
+          <th>{% trans "Company" %}</th>
+          <th>{% trans "Industry" %}</th>
+          <th>{% trans "Location" %}</th>
+          <th>{% trans "Jobs" %}</th>
+          <th>{% trans "Owner Status" %}</th>
+          <th style="text-align:end;">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for company in page_obj %}
+        <tr>
+          <td><input type="checkbox" class="sa-checkbox sa-row-check" value="{{ company.pk }}"></td>
+          <td>
+            <a href="{% url 'superadmin:company_detail' company.pk %}"
+               style="color:var(--sa-text);font-weight:600;text-decoration:none;">
+              {{ company.company_name }}
+            </a>
+          </td>
+          <td class="muted">{{ company.industry|default:"—" }}</td>
+          <td class="muted">{{ company.location|default:"—" }}</td>
+          <td>
+            <span class="sa-badge gold">{{ company.jobs_count }}</span>
+          </td>
+          <td>
+            {% if company.owner %}
+              {% if company.owner.is_active %}
+              <span class="sa-badge active">{% trans "Active" %}</span>
+              {% else %}
+              <span class="sa-badge disabled">{% trans "Disabled" %}</span>
+              {% endif %}
+            {% else %}
+            <span class="sa-text-muted sa-fs-sm">{% trans "No owner" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="sa-flex" style="justify-content:flex-end;">
+              <a href="{% url 'superadmin:company_detail' company.pk %}" class="sa-btn sa-btn-ghost sa-btn-icon" title="{% trans 'View' %}">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a href="{% url 'superadmin:company_edit' company.pk %}" class="sa-btn sa-btn-ghost sa-btn-icon" title="{% trans 'Edit' %}">
+                <i class="fas fa-pen"></i>
+              </a>
+              <form method="post" action="{% url 'superadmin:company_toggle' company.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="sa-btn sa-btn-orange sa-btn-icon" title="{% trans 'Toggle' %}">
+                  <i class="fas fa-power-off"></i>
+                </button>
+              </form>
+              <form method="post" action="{% url 'superadmin:company_delete' company.pk %}" style="display:inline;"
+                    onsubmit="return confirm('{% trans "Move to Trash?" %}')">
+                {% csrf_token %}
+                <button type="submit" class="sa-btn sa-btn-danger sa-btn-icon" title="{% trans 'Delete' %}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7">
+            <div class="sa-empty">
+              <div class="sa-empty-icon"><i class="fas fa-building"></i></div>
+              <div class="sa-empty-title">{% trans "No companies found" %}</div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="sa-pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}" class="sa-page-link"><i class="fas fa-chevron-left"></i></a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <a href="?page={{ num }}&q={{ q }}"
+       class="sa-page-link {% if num == page_obj.number %}current{% endif %}">{{ num }}</a>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&q={{ q }}" class="sa-page-link"><i class="fas fa-chevron-right"></i></a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

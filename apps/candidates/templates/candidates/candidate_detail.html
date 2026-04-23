@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Candidate Details</title>
+</head>
+<body>
+    <h2>{{ candidate.full_name }}'s Details</h2>
+    <p><strong>Name:</strong> {{ candidate.full_name }}</p>
+    <p><strong>Phone:</strong> {{ candidate.phone }}</p>
+    <p><strong>Email:</strong> {{ candidate.email }}</p>
+    <p><strong>Current Title:</strong> {{ candidate.current_title }}</p>
+    <p><strong>Years of Experience:</strong> {{ candidate.years_of_experience }}</p>
+    <p><strong>Expected Salary:</strong> {{ candidate.expected_salary }}</p>
+    <p><strong>Availability:</strong> {{ candidate.availability }}</p>
+    <p><strong>Location:</strong> {{ candidate.location }}</p>
+    <p><strong>Notes:</strong> {{ candidate.notes }}</p>
+    <p><strong>CV:</strong> <a href="{{ candidate.cv_file.url }}">Download</a></p>
+    
+    <br>
+    <a href="{% url 'candidates:candidate_list' %}">Back to Candidate List</a>
+</body>
+</html>

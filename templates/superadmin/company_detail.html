@@ -1,0 +1,130 @@
+{% extends "superadmin/base.html" %}
+{% load i18n %}
+{% block title %}{{ company.company_name }}{% endblock %}
+{% block page_title %}{{ company.company_name }}{% endblock %}
+{% block page_subtitle %}{% trans "Company Detail View" %}{% endblock %}
+
+{% block content %}
+
+<div class="sa-page-header">
+  <a href="{% url 'superadmin:companies_list' %}" class="sa-btn sa-btn-ghost sa-btn-sm">
+    <i class="fas fa-arrow-left"></i> {% trans "Back" %}
+  </a>
+  <div class="sa-page-actions">
+    <a href="{% url 'superadmin:company_edit' company.pk %}" class="sa-btn sa-btn-primary sa-btn-sm">
+      <i class="fas fa-pen"></i> {% trans "Edit" %}
+    </a>
+    <form method="post" action="{% url 'superadmin:company_toggle' company.pk %}" style="display:inline;">
+      {% csrf_token %}
+      <button class="sa-btn sa-btn-orange sa-btn-sm">
+        <i class="fas fa-power-off"></i>
+        {% if company.owner and not company.owner.is_active %}{% trans "Enable Owner" %}{% else %}{% trans "Disable Owner" %}{% endif %}
+      </button>
+    </form>
+    <form method="post" action="{% url 'superadmin:company_delete' company.pk %}" style="display:inline;"
+          onsubmit="return confirm('{% trans "Move to Trash?" %}')">
+      {% csrf_token %}
+      <button class="sa-btn sa-btn-danger sa-btn-sm"><i class="fas fa-trash"></i> {% trans "Delete" %}</button>
+    </form>
+  </div>
+</div>
+
+<div class="sa-detail-grid">
+
+  <!-- Info -->
+  <div class="sa-panel">
+    <div class="sa-panel-header">
+      <i class="fas fa-building sa-text-gold"></i>
+      <span class="sa-panel-title">{% trans "Company Information" %}</span>
+    </div>
+    <div class="sa-panel-body">
+      <div class="sa-info-list">
+        <div class="sa-info-row"><span class="sa-info-label">{% trans "Name" %}</span><span class="sa-info-value">{{ company.company_name }}</span></div>
+        <div class="sa-info-row"><span class="sa-info-label">{% trans "Industry" %}</span><span class="sa-info-value">{{ company.industry|default:"—" }}</span></div>
+        <div class="sa-info-row"><span class="sa-info-label">{% trans "Location" %}</span><span class="sa-info-value">{{ company.location|default:"—" }}</span></div>
+        <div class="sa-info-row"><span class="sa-info-label">{% trans "Phone" %}</span><span class="sa-info-value">{{ company.phone|default:"—" }}</span></div>
+        <div class="sa-info-row"><span class="sa-info-label">{% trans "Website" %}</span>
+          <span class="sa-info-value">
+            {% if company.website %}<a href="{{ company.website }}" target="_blank" style="color:var(--sa-blue);">{{ company.website }}</a>{% else %}—{% endif %}
+          </span>
+        </div>
+        <div class="sa-info-row"><span class="sa-info-label">{% trans "Description" %}</span><span class="sa-info-value">{{ company.description|default:"—" }}</span></div>
+        <div class="sa-info-row">
+          <span class="sa-info-label">{% trans "Owner" %}</span>
+          <span class="sa-info-value">
+            {% if company.owner %}{{ company.owner.username }} ({{ company.owner.email }})
+              <span class="sa-badge {% if company.owner.is_active %}active{% else %}disabled{% endif %}" style="margin-inline-start:8px;">
+                {% if company.owner.is_active %}{% trans "Active" %}{% else %}{% trans "Disabled" %}{% endif %}
+              </span>
+            {% else %}—{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="sa-panel">
+      <div class="sa-panel-header">
+        <i class="fas fa-chart-bar sa-text-gold"></i>
+        <span class="sa-panel-title">{% trans "Stats" %}</span>
+      </div>
+      <div class="sa-panel-body">
+        <div class="sa-info-list">
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Total Jobs" %}</span><span class="sa-info-value sa-fw-bold">{{ jobs|length }}</span></div>
+          <div class="sa-info-row">
+            <span class="sa-info-label">{% trans "Active Jobs" %}</span>
+            <span class="sa-info-value">{{ jobs|length }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Jobs List -->
+<div class="sa-panel" style="margin-top:20px;">
+  <div class="sa-panel-header">
+    <i class="fas fa-briefcase sa-text-gold"></i>
+    <span class="sa-panel-title">{% trans "Jobs" %} ({{ jobs|length }})</span>
+  </div>
+  <div class="sa-table-wrap">
+    <table class="sa-table">
+      <thead>
+        <tr>
+          <th>{% trans "Title" %}</th>
+          <th>{% trans "Type" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Applicants" %}</th>
+          <th>{% trans "Deadline" %}</th>
+          <th style="text-align:end;">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+        <tr>
+          <td><a href="{% url 'superadmin:job_detail' job.pk %}" style="color:var(--sa-text);font-weight:600;text-decoration:none;">{{ job.title }}</a></td>
+          <td class="muted">{{ job.get_job_type_display }}</td>
+          <td><span class="sa-badge {{ job.status }}">{{ job.get_status_display }}</span></td>
+          <td><span class="sa-badge gold">{{ job.app_count }}</span></td>
+          <td class="muted">{{ job.application_deadline|default:"—" }}</td>
+          <td style="text-align:end;">
+            <div class="sa-flex" style="justify-content:flex-end;">
+              <a href="{% url 'superadmin:job_detail' job.pk %}" class="sa-btn sa-btn-ghost sa-btn-icon"><i class="fas fa-eye"></i></a>
+              <form method="post" action="{% url 'superadmin:job_delete' job.pk %}" style="display:inline;" onsubmit="return confirm('{% trans "Move to Trash?" %}')">
+                {% csrf_token %}
+                <button class="sa-btn sa-btn-danger sa-btn-icon"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6"><div class="sa-empty"><div class="sa-empty-icon"><i class="fas fa-briefcase"></i></div><div class="sa-empty-title">{% trans "No jobs posted" %}</div></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

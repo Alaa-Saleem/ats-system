@@ -1,0 +1,198 @@
+{% extends "superadmin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Application" %} #{{ application.pk }}{% endblock %}
+{% block page_title %}{% trans "Application Detail" %}{% endblock %}
+{% block page_subtitle %}{{ application.candidate.full_name }} → {{ application.job.title }}{% endblock %}
+
+{% block content %}
+
+<div class="sa-page-header">
+  <a href="{% url 'superadmin:applications_list' %}" class="sa-btn sa-btn-ghost sa-btn-sm"><i class="fas fa-arrow-left"></i> {% trans "Back" %}</a>
+  <div class="sa-page-actions">
+    <form method="post" action="{% url 'superadmin:application_delete' application.pk %}" style="display:inline;" onsubmit="return confirm('{% trans "Move to Trash?" %}')">
+      {% csrf_token %}
+      <button class="sa-btn sa-btn-danger sa-btn-sm"><i class="fas fa-trash"></i> {% trans "Delete" %}</button>
+    </form>
+  </div>
+</div>
+
+<div class="sa-detail-grid">
+
+  <!-- Left column -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Candidate -->
+    <div class="sa-panel">
+      <div class="sa-panel-header">
+        <i class="fas fa-user-tie sa-text-gold"></i>
+        <span class="sa-panel-title">{% trans "Candidate Information" %}</span>
+        <a href="{% url 'superadmin:candidate_detail' application.candidate.pk %}" class="sa-btn sa-btn-ghost sa-btn-sm">{% trans "View Profile" %}</a>
+      </div>
+      <div class="sa-panel-body">
+        <div class="sa-info-list">
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Name" %}</span><span class="sa-info-value sa-fw-bold">{{ application.candidate.full_name }}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Email" %}</span><span class="sa-info-value">{{ application.candidate.email }}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Phone" %}</span><span class="sa-info-value">{{ application.candidate.phone }}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Title" %}</span><span class="sa-info-value">{{ application.candidate.current_title|default:"—" }}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Experience" %}</span><span class="sa-info-value">{% if application.candidate.years_of_experience %}{{ application.candidate.years_of_experience }} {% trans "years" %}{% else %}—{% endif %}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Location" %}</span><span class="sa-info-value">{{ application.candidate.location|default:"—" }}</span></div>
+          {% if application.candidate.cv_file %}
+          <div class="sa-info-row">
+            <span class="sa-info-label">{% trans "CV" %}</span>
+            <span class="sa-info-value">
+              <a href="{{ application.candidate.cv_file.url }}" target="_blank" class="sa-btn sa-btn-blue sa-btn-sm">
+                <i class="fas fa-download"></i> {% trans "Download CV" %}
+              </a>
+            </span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Job Info -->
+    <div class="sa-panel">
+      <div class="sa-panel-header">
+        <i class="fas fa-briefcase sa-text-gold"></i>
+        <span class="sa-panel-title">{% trans "Job Information" %}</span>
+        <a href="{% url 'superadmin:job_detail' application.job.pk %}" class="sa-btn sa-btn-ghost sa-btn-sm">{% trans "View Job" %}</a>
+      </div>
+      <div class="sa-panel-body">
+        <div class="sa-info-list">
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Title" %}</span><span class="sa-info-value sa-fw-bold">{{ application.job.title }}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Company" %}</span><span class="sa-info-value">{{ application.job.company.company_name }}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Type" %}</span><span class="sa-info-value">{{ application.job.get_job_type_display }}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Location" %}</span><span class="sa-info-value">{{ application.job.location }}</span></div>
+          <div class="sa-info-row">
+            <span class="sa-info-label">{% trans "Job Status" %}</span>
+            <span class="sa-info-value"><span class="sa-badge {{ application.job.status }}">{{ application.job.get_status_display }}</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Answers -->
+    {% if application.custom_answers.all %}
+    <div class="sa-panel">
+      <div class="sa-panel-header">
+        <i class="fas fa-list-check sa-text-gold"></i>
+        <span class="sa-panel-title">{% trans "Application Answers" %}</span>
+      </div>
+      <div class="sa-panel-body">
+        <div class="sa-info-list">
+          {% for answer in application.custom_answers.all %}
+          <div class="sa-info-row">
+            <span class="sa-info-label">{{ answer.field.label }}</span>
+            <span class="sa-info-value">
+              {% if answer.field.field_type in 'file_upload,image_upload' %}
+                {% if answer.file_answer %}
+                <a href="{{ answer.file_answer.url }}" target="_blank" class="sa-btn sa-btn-blue sa-btn-sm"><i class="fas fa-download"></i> {% trans "Download" %}</a>
+                {% else %}—{% endif %}
+              {% else %}
+                {{ answer.text_answer|default:"—" }}
+              {% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Right column -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Current Stage -->
+    <div class="sa-panel">
+      <div class="sa-panel-header">
+        <i class="fas fa-layer-group sa-text-gold"></i>
+        <span class="sa-panel-title">{% trans "Pipeline Stage" %}</span>
+      </div>
+      <div class="sa-panel-body">
+        <div style="margin-bottom:16px;">
+          <span class="sa-badge active" style="font-size:14px;padding:6px 16px;background:{{ application.current_stage.color }}22;color:{{ application.current_stage.color }};">
+            {{ application.current_stage.name }}
+          </span>
+        </div>
+        <form method="post" action="{% url 'superadmin:application_stage' application.pk %}">
+          {% csrf_token %}
+          <label class="sa-label">{% trans "Move to Stage" %}</label>
+          <select name="stage_id" class="sa-select" style="margin-bottom:10px;">
+            {% for s in stages %}
+            <option value="{{ s.pk }}" {% if s.pk == application.current_stage.pk %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="sa-btn sa-btn-primary" style="width:100%;justify-content:center;">
+            <i class="fas fa-arrow-right"></i> {% trans "Change Stage" %}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Meta -->
+    <div class="sa-panel">
+      <div class="sa-panel-header">
+        <i class="fas fa-info-circle sa-text-gold"></i>
+        <span class="sa-panel-title">{% trans "Application Meta" %}</span>
+      </div>
+      <div class="sa-panel-body">
+        <div class="sa-info-list">
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "ID" %}</span><span class="sa-info-value">#{{ application.pk }}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Source" %}</span><span class="sa-info-value">{{ application.source|default:"—" }}</span></div>
+          <div class="sa-info-row">
+            <span class="sa-info-label">{% trans "Shortlisted" %}</span>
+            <span class="sa-info-value">{% if application.is_shortlisted %}<span class="sa-badge gold">{% trans "Yes" %}</span>{% else %}<span class="sa-badge disabled">{% trans "No" %}</span>{% endif %}</span>
+          </div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Applied" %}</span><span class="sa-info-value">{{ application.created_at|date:"d M Y H:i" }}</span></div>
+          <div class="sa-info-row"><span class="sa-info-label">{% trans "Last Activity" %}</span><span class="sa-info-value">{{ application.last_activity_at|date:"d M Y H:i" }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ratings -->
+    {% if application.ratings.all %}
+    <div class="sa-panel">
+      <div class="sa-panel-header">
+        <i class="fas fa-star sa-text-gold"></i>
+        <span class="sa-panel-title">{% trans "Ratings" %} ({% trans "avg:" %} {{ application.avg_rating }})</span>
+      </div>
+      <div class="sa-panel-body">
+        {% for r in application.ratings.all %}
+        <div class="sa-flex-between sa-fs-sm" style="padding:6px 0; border-bottom:1px solid var(--sa-border);">
+          <span>{{ r.rater.username|default:"Unknown" }}</span>
+          <span style="color:var(--sa-gold);">
+            {% for i in "12345" %}{% if forloop.counter <= r.score %}★{% else %}☆{% endif %}{% endfor %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Comments -->
+    {% if application.comments.all %}
+    <div class="sa-panel">
+      <div class="sa-panel-header">
+        <i class="fas fa-comments sa-text-gold"></i>
+        <span class="sa-panel-title">{% trans "Comments" %} ({{ application.comments.count }})</span>
+      </div>
+      <div class="sa-panel-body">
+        {% for comment in application.comments.all %}
+        <div style="padding:10px 0; border-bottom:1px solid var(--sa-border);">
+          <div class="sa-flex-between sa-fs-sm" style="margin-bottom:4px;color:var(--sa-text-muted);">
+            <span>{{ comment.author.username|default:"Unknown" }}</span>
+            <span>{{ comment.created_at|date:"d M H:i" }}</span>
+          </div>
+          <p style="color:var(--sa-text);font-size:13px;">{{ comment.text }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}
