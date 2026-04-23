@@ -214,4 +214,5 @@ CSRF_TRUSTED_ORIGINS = [
 CSRF_COOKIE_HTTPONLY = False   # allow JS access to CSRF cookie if needed
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
-
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
