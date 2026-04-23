@@ -1,9 +1,5 @@
-Django>=5.0,<5.1
-psycopg2-binary>=2.9.9
-python-decouple>=3.8
-Pillow>=10.0.0
-django-crispy-forms>=2.1
-crispy-bootstrap5>=2024.2
-django-filter>=23.5
-django-widget-tweaks>=1.5.0
-django-allauth>=0.63.0,<65.0
+certifi==2026.4.22
+charset-normalizer==3.4.7
+idna==3.13
+requests==2.33.1
+urllib3==2.6.3
