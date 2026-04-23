@@ -11,3 +11,4 @@ django-widget-tweaks
 django-allauth
 requests
 cryptography
+PyJWT
