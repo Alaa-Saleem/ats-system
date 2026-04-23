@@ -12,3 +12,4 @@ django-allauth
 requests
 cryptography
 PyJWT
+whitenoise
