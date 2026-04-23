@@ -1,0 +1,13 @@
+Django==5.0.14
+gunicorn
+psycopg2-binary
+dj-database-url==3.1.2
+python-decouple
+Pillow
+django-crispy-forms
+crispy-bootstrap5
+django-filter
+django-widget-tweaks
+django-allauth
+requests
+cryptography
