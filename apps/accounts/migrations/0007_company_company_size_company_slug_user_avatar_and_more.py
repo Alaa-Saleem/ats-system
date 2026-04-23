@@ -29,21 +29,13 @@ class Migration(migrations.Migration):
             name='company_size',
             field=models.CharField(blank=True, max_length=50),
         ),
-        # Step 1: add slug WITHOUT unique so existing rows can be ''
+        # Add slug with unique directly since DB is empty during initial migration
         migrations.AddField(
             model_name='company',
             name='slug',
-            field=models.SlugField(blank=True, max_length=120, default=''),
-            preserve_default=False,
+            field=models.CharField(blank=True, max_length=120, unique=True, null=True),
         ),
-        # Step 2: fill unique slug for every existing company row
         migrations.RunPython(populate_company_slugs, migrations.RunPython.noop),
-        # Step 3: now enforce uniqueness
-        migrations.AlterField(
-            model_name='company',
-            name='slug',
-            field=models.SlugField(blank=True, max_length=120, unique=True),
-        ),
         migrations.AddField(
             model_name='user',
             name='avatar',
